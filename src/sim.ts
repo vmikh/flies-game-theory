@@ -3,7 +3,7 @@
  * depression of Kenyon cell → MBON synapses. 1 ms Euler steps, current-based synapses,
  * CSR adjacency (pre → post). Mirrors scripts/proto_lif.py.
  */
-import type { Circuit } from './circuit';
+import type { Circuit } from './circuit.ts';
 
 export interface SimParams {
   vRest: number; vTh: number; vReset: number; tauM: number; tauSyn: number; refrac: number;
@@ -94,6 +94,9 @@ export class MBSim {
 
   get nMbon() { return this.mbonRange[1] - this.mbonRange[0]; }
   get nDan() { return this.danRange[1] - this.danRange[0]; }
+
+  /** Slow forgetting: plastic factors relax toward 1. */
+  forget(rate: number) { const pl = this.plastic; for (let e = 0; e < pl.length; e++) pl[e] += (1 - pl[e]) * rate; }
 
   /** Reset membrane state (not memory). */
   resetState() { this.v.fill(this.p.vRest); this.I.fill(0); this.ref.fill(0); this.trace.fill(0); this.rateCount.fill(0); }
