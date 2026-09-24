@@ -24,6 +24,7 @@ const playBtn = document.getElementById('play') as HTMLButtonElement;
 const roundsIn = document.getElementById('rounds') as HTMLInputElement;
 const speedIn = document.getElementById('speed') as HTMLInputElement; const speedV = document.getElementById('speedv')!;
 const history: { round: number; coop: number }[] = [];
+const COOP = '#4cc9a4', DEFECT = '#e4572e';
 
 /** Speed slider → target rounds per second (0.25 … ∞). */
 function targetRps(): number { const v = Number(speedIn.value); return v >= 100 ? Infinity : 0.25 * Math.pow(2, v / 12); }
@@ -34,6 +35,8 @@ const circuit = await Circuit.load();
 status.textContent = 'spawning 9 brains…';
 const game = await Game.create(circuit, DEFAULT_GAME, async (id, seed) => { const f = new RemoteFly(); await f.init(DEFAULT_GAME.sim, seed); return f; }, (m) => (status.textContent = m));
 render(game.snapshot()); status.textContent = 'ready';
+// ?autoplay=N starts N rounds immediately (used for headless smoke tests)
+const auto = new URLSearchParams(location.search).get('autoplay');
 
 let playing = false, budget = 0, lastRender = 0;
 playBtn.onclick = () => { if (playing) { playing = false; playBtn.textContent = '▶ Play'; return; } budget = roundsIn.value ? Number(roundsIn.value) : Infinity; playing = true; playBtn.textContent = '❚❚ Pause'; void loop(); };
@@ -50,8 +53,8 @@ async function loop() {
   }
   playing = false; playBtn.textContent = '▶ Play';
 }
+if (auto) { roundsIn.value = auto; speedIn.value = '100'; showSpeed(); playBtn.click(); }
 
-const COOP = '#4cc9a4', DEFECT = '#e4572e';
 function render(s: Snapshot) {
   const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
   d3.select('#lb').selectAll('div.row').data(flies, (d: any) => d.id).join('div').attr('class', 'row').html((f) => {
