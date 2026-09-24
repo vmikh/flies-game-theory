@@ -30,6 +30,8 @@ export class Arena {
   playback: (Playback | null)[]; danIds: number[]; pamIds: number[]; ppl1Ids: number[];
   graph = new THREE.Group(); edges = new Map<string, { line: Line2; mat: LineMaterial }>(); flashes: { obj: Line2; mat: LineMaterial; born: number }[] = [];
   raf = 0; lastT = performance.now(); resolution = new THREE.Vector2(1, 1);
+  focused: number | null = null; camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) };
+  onFocus: ((b: number | null) => void) | null = null; private down: { x: number; y: number } | null = null;
 
   constructor(readonly container: HTMLElement, readonly c: Circuit, skelMeta: SkelMeta, skelBin: ArrayBuffer, nBrains: number) {
     this.nBrains = nBrains; this.nNeurons = c.n; this.playback = Array(nBrains).fill(null);
@@ -62,6 +64,10 @@ export class Arena {
     });
     this.toneScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.toneMat));
     this.camera.position.set(0, 5.6, 4.0); this.camera.lookAt(0, 0, 0);
+    const el = this.renderer.domElement;
+    el.addEventListener('pointerdown', (e) => (this.down = { x: e.clientX, y: e.clientY }));
+    el.addEventListener('pointerup', (e) => { if (!this.down) return; const moved = Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y); this.down = null; if (moved > 6) return; this.focus(this.pick(e.clientX, e.clientY)); });
+    addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') this.focus(null); });
     this.resize(); addEventListener('resize', () => this.resize());
     this.loop();
   }
@@ -81,11 +87,11 @@ export class Arena {
 
   private material(brain: number) {
     return new THREE.ShaderMaterial({
-      uniforms: { uAct: { value: this.actTex }, uBrain: { value: brain }, uN: { value: this.nNeurons }, uNB: { value: this.nBrains } },
+      uniforms: { uAct: { value: this.actTex }, uBrain: { value: brain }, uN: { value: this.nNeurons }, uNB: { value: this.nBrains }, uDim: { value: 1 } },
       vertexShader: `attribute float nid; attribute vec3 col; uniform sampler2D uAct; uniform float uBrain, uN, uNB; varying vec3 vCol; varying float vA;
         void main() { vA = texture2D(uAct, vec2((nid + 0.5) / uN, (uBrain + 0.5) / uNB)).r; vCol = col; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: `varying vec3 vCol; varying float vA;
-        void main() { float a = clamp(vA, 0.0, 1.0); vec3 glow = mix(vCol, vec3(1.0, 0.97, 0.9), a * 0.5); gl_FragColor = vec4(glow * (0.018 + 0.6 * a), 1.0); }`,
+      fragmentShader: `varying vec3 vCol; varying float vA; uniform float uDim;
+        void main() { float a = clamp(vA, 0.0, 1.0); vec3 glow = mix(vCol, vec3(1.0, 0.97, 0.9), a * 0.5); gl_FragColor = vec4(glow * (0.018 + 0.6 * a) * uDim, 1.0); }`,
       transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
     });
   }
@@ -101,15 +107,15 @@ export class Arena {
     const now = performance.now(); const n = this.nNeurons;
     for (let b = 0; b < this.nBrains; b++) {
       const m = s.movies[b];
-      if (m && (m.decision || m.teach)) this.playback[b] = { movie: m, t0: now };
+      if (m && (m.decision || m.teach)) { this.playback[b] = { movie: m, t0: now }; this.lastMovie[b] = m; }
       else if (s.activity[b]) { const a = s.activity[b]!; const row = b * n; for (let i = 0; i < n; i++) this.act[row + i] = Math.max(this.act[row + i], Math.min(1.5, a[i] / 25)); this.actTex.needsUpdate = true; }
     }
     // social graph: one persistent edge per pair, colour = mean outcome, width = games; latest games flash
     for (const p of s.pairs) {
       const key = `${p.a}-${p.b}`; let e = this.edges.get(key);
       if (!e) { const g = new LineGeometry(); g.setPositions([...this.anchors[p.a].toArray(), ...this.anchors[p.b].toArray()]); const mat = new LineMaterial({ color: 0xffffff, linewidth: 1, transparent: true, opacity: 0.3, depthTest: false }); mat.resolution.copy(this.resolution); const line = new Line2(g, mat); line.computeLineDistances(); this.graph.add(line); e = { line, mat }; this.edges.set(key, e); }
-      e.mat.color.set(this.outcomeColor(p.outcome)); e.mat.linewidth = 0.8 + Math.min(6, p.games) * 0.55; e.mat.opacity = 0.18 + Math.min(1, p.games / 8) * 0.35;
-      if (p.lastRound === s.round - 1) { const g = new LineGeometry(); g.setPositions([...this.anchors[p.a].toArray(), ...this.anchors[p.b].toArray()]); const mat = new LineMaterial({ color: this.outcomeColor(s.last.find((r) => (r.a === p.a && r.b === p.b) || (r.a === p.b && r.b === p.a))?.ca === undefined ? p.outcome : this.recOutcome(s.last.find((r) => (r.a === p.a && r.b === p.b) || (r.a === p.b && r.b === p.a))!)), linewidth: 4, transparent: true, opacity: 0.95, depthTest: false }); mat.resolution.copy(this.resolution); const line = new Line2(g, mat); this.graph.add(line); this.flashes.push({ obj: line, mat, born: now }); }
+      e.mat.color.set(this.outcomeColor(p.outcome)); e.mat.linewidth = 0.5 + Math.min(6, p.games) * 0.25; e.mat.opacity = 0.16 + Math.min(1, p.games / 8) * 0.3;
+      if (p.lastRound === s.round - 1) { const g = new LineGeometry(); g.setPositions([...this.anchors[p.a].toArray(), ...this.anchors[p.b].toArray()]); const mat = new LineMaterial({ color: this.outcomeColor(s.last.find((r) => (r.a === p.a && r.b === p.b) || (r.a === p.b && r.b === p.a))?.ca === undefined ? p.outcome : this.recOutcome(s.last.find((r) => (r.a === p.a && r.b === p.b) || (r.a === p.b && r.b === p.a))!)), linewidth: 2.2, transparent: true, opacity: 0.95, depthTest: false }); mat.resolution.copy(this.resolution); const line = new Line2(g, mat); this.graph.add(line); this.flashes.push({ obj: line, mat, born: now }); }
     }
     for (let b = 0; b < this.nBrains; b++) { const f = s.flies[b]; this.labels[b].textContent = `${f.name} · ${f.money.toFixed(0)}`; this.labels[b].classList.toggle('dead', !f.alive); }
   }
@@ -118,12 +124,29 @@ export class Arena {
 
   /** Apply the movie frame for time t (ms since playback start) to brain b; returns false when finished. */
   private applyMovie(b: number, pb: Playback, now: number): boolean {
-    const n = this.nNeurons, row = b * n; const t = (now - pb.t0) / PLAYBACK_SLOWDOWN;
+    const n = this.nNeurons, row = b * n; const t = (now - pb.t0) / (this.focused === b ? PLAYBACK_SLOWDOWN * 2.5 : PLAYBACK_SLOWDOWN);
     const seq: { fr: Frames; gain: number }[] = []; if (pb.movie.decision) seq.push({ fr: pb.movie.decision, gain: 1 }); if (pb.movie.teach) seq.push({ fr: pb.movie.teach, gain: 1 });
     let acc = 0;
     for (const { fr } of seq) { const dur = fr.bins * fr.binMs; if (t < acc + dur) { const bin = Math.min(fr.bins - 1, Math.floor((t - acc) / fr.binMs)); const off = bin * fr.n; for (let i = 0; i < n; i++) { const v = fr.data[off + i] * 0.9; if (v > this.act[row + i]) this.act[row + i] = Math.min(1.5, v); } return true; } acc += dur; }
     return false;
   }
+
+  /** Nearest brain anchor to a screen point, within 90 px. */
+  pick(cx: number, cy: number): number | null {
+    const r = this.container.getBoundingClientRect(); const w = r.width, h = r.height; const v = new THREE.Vector3(); let best: number | null = null, bd = 90;
+    for (let b = 0; b < this.nBrains; b++) { v.copy(this.anchors[b]).project(this.camera); const d = Math.hypot(((v.x + 1) / 2) * w - (cx - r.left), ((1 - v.y) / 2) * h - (cy - r.top)); if (d < bd) { bd = d; best = b; } }
+    return best;
+  }
+  /** Close-up on brain b (null = back to the ring). Replays the brain's last movie slowly. */
+  focus(b: number | null) {
+    this.focused = b;
+    if (b === null) this.camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) };
+    else { const a = this.anchors[b]; this.camGoal = { pos: a.clone().add(new THREE.Vector3(0, 0.95, 0.55)), target: a.clone() }; this.replay(b); }
+    this.onFocus?.(b);
+  }
+  /** Restart the brain's last movie from the beginning. */
+  replay(b: number) { const pb = this.playback[b]; if (pb) pb.t0 = performance.now(); else if (this.lastMovie[b]) this.playback[b] = { movie: this.lastMovie[b]!, t0: performance.now() }; }
+  lastMovie: (FlyMovie | null)[] = [];
 
   private loop = () => {
     this.raf = requestAnimationFrame(this.loop);
@@ -133,13 +156,16 @@ export class Arena {
     for (let b = 0; b < this.nBrains; b++) { const pb = this.playback[b]; if (pb && !this.applyMovie(b, pb, now)) this.playback[b] = null; }
     this.actTex.needsUpdate = true;
     for (let i = this.flashes.length - 1; i >= 0; i--) { const f = this.flashes[i]; const age = (now - f.born) / 1000; f.mat.opacity = Math.max(0, 0.95 - age * 0.45); if (age > 2.2) { this.graph.remove(f.obj); f.obj.geometry.dispose(); f.mat.dispose(); this.flashes.splice(i, 1); } }
+    if (this.focused !== null || this.camGoal) { this.controls.target.lerp(this.camGoal.target, 1 - Math.exp(-dt * 4)); this.camera.position.lerp(this.camGoal.pos, 1 - Math.exp(-dt * 4)); }
+    for (let b = 0; b < this.nBrains; b++) { const u = (this.brains[b].material as THREE.ShaderMaterial).uniforms.uDim; const goal = this.focused === null || this.focused === b ? 1 : 0.12; u.value += (goal - u.value) * (1 - Math.exp(-dt * 6)); }
+    this.graph.visible = this.focused === null;
     this.controls.update();
     // pass 1: brains into HDR (additive); pass 2: tone map to screen; pass 3: graph + overlays on top
     this.renderer.setRenderTarget(this.hdr); this.renderer.clear(); for (const g of [this.graph]) g.visible = false; this.renderer.render(this.scene, this.camera);
     this.renderer.setRenderTarget(null); this.renderer.render(this.toneScene, this.toneCam);
-    this.graph.visible = true; for (const b of this.brains) b.visible = false; this.renderer.render(this.scene, this.camera); for (const b of this.brains) b.visible = true;
+    if (this.focused === null) { this.graph.visible = true; for (const b of this.brains) b.visible = false; this.renderer.render(this.scene, this.camera); for (const b of this.brains) b.visible = true; }
     const w = this.container.clientWidth, h = this.container.clientHeight; const v = new THREE.Vector3();
-    for (let b = 0; b < this.nBrains; b++) { v.copy(this.anchors[b]); v.z += 0.3; v.project(this.camera); this.labels[b].style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, 0)`; }
+    for (let b = 0; b < this.nBrains; b++) { this.labels[b].style.opacity = this.focused === null || this.focused === b ? '1' : '0'; v.copy(this.anchors[b]); v.z += 0.3; v.project(this.camera); this.labels[b].style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, 0)`; }
   };
 
   static async load(container: HTMLElement, c: Circuit, nBrains: number, base = '/data/skel_R') {

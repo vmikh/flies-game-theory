@@ -32,7 +32,7 @@ app.innerHTML = `
   <button id="restart">Restart with these parameters</button>
 </aside>
 <main class="layout">
-  <section id="arena"></section>
+  <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-replay">↻ Replay</button><button id="cap-back">← Back (Esc)</button></div></div></section>
   <aside class="side">
     <section id="board"><h2>Ranking</h2><div id="lb"></div></section>
     <section id="trust"><h2>Trust <span class="muted">row = fly, col = opponent</span></h2><svg id="tm"></svg></section>
@@ -43,6 +43,7 @@ app.innerHTML = `
 const status = document.getElementById('status')!;
 const playBtn = document.getElementById('play') as HTMLButtonElement;
 const history: { round: number; coop: number }[] = [];
+let lastSnap: Snapshot | null = null;
 /** Speed: 1× = one round every 2 s (a game every half second); 20× ≈ as fast as the machine goes. */
 let speedX = 1; const BASE_RPS = 0.5;
 const speedSeg = document.getElementById('speed')!;
@@ -75,6 +76,19 @@ async function startGame() {
   render(game.snapshot()); status.textContent = `ready · seed ${p.seed}${shuffle === 'none' ? '' : ' · shuffled wiring'}`;
 }
 document.getElementById('restart')!.onclick = () => void startGame();
+const capEl = document.getElementById('caption')!, capText = document.getElementById('cap-text')!;
+function caption(b: number) {
+  const s = lastSnap; if (!s) return; const f = s.flies[b]; const m = s.movies[b];
+  const rec = [...s.last].reverse().find((r) => r.a === b || r.b === b);
+  let html = `<b>${f.name}</b> · ${f.money.toFixed(0)} money · ${f.games} games · cooperates ${f.games ? Math.round(100 * f.coops / f.games) : 0}%`;
+  if (rec) { const me = rec.a === b; const opp = me ? rec.b : rec.a; const myC = me ? rec.ca : rec.cb, oppC = me ? rec.cb : rec.ca, pay = me ? rec.pa : rec.pb, sc = me ? rec.scoreA : rec.scoreB, pc = me ? rec.pcA : rec.pcB;
+    html += `<br>Last game, round ${rec.round}: smells <b>F${opp + 1}</b> → approach−avoid <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b> → cooperates with p=${pc.toFixed(2)} → <b>${myC ? 'COOPERATES' : 'DEFECTS'}</b>; F${opp + 1} ${oppC ? 'cooperates' : 'defects'} → payoff <b>${pay}</b> → ${pay >= 3 ? '<span class="pam">reward (PAM dopamine)</span>' : '<span class="ppl1">punishment (PPL1 dopamine)</span>'}`; }
+  if (m && !m.decision) html += `<br><span class="muted">activity movie is recorded at 1× and 2× only</span>`;
+  capText.innerHTML = html;
+}
+arena.onFocus = (b) => { capEl.hidden = b === null; if (b !== null) caption(b); };
+document.getElementById('cap-replay')!.onclick = () => { if (arena.focused !== null) arena.replay(arena.focused); };
+document.getElementById('cap-back')!.onclick = () => arena.focus(null);
 let playing = false, budget = Infinity, lastRender = 0;
 await startGame();
 // ?autoplay=N starts N rounds immediately (used for headless smoke tests)
@@ -98,7 +112,7 @@ async function loop() {
 if (auto) { $('p-randomSeed').checked = false; budget = Number(auto); speedX = Number(new URLSearchParams(location.search).get('speed') ?? 20); playBtn.click(); }
 
 function render(s: Snapshot) {
-  arena.update(s);
+  lastSnap = s; arena.update(s); if (arena.focused !== null) caption(arena.focused);
   const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
   d3.select('#lb').selectAll('div.row').data(flies, (d: any) => d.id).join('div').attr('class', 'row').html((f) => {
     const cr = f.games ? f.coops / f.games : 0;

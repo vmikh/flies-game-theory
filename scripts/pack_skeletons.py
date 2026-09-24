@@ -37,7 +37,9 @@ for ni, bid in enumerate(ids):
             prev = j; j = parent[j]
     segs_all.extend(out); offs.append(len(segs_all))
 segs = np.array(segs_all, np.float32).reshape(-1, 6)
-centre = segs.reshape(-1, 3).mean(0); segs -= np.tile(centre, 2)
+# centre on the Kenyon cells (calyx + lobes = the visual mass), not on the long PN/MBON axons
+kc_segs = np.concatenate([segs[offs[i]:offs[i+1]] for i in range(kc0, kc1) if offs[i+1] > offs[i]])
+centre = kc_segs.reshape(-1, 3).mean(0); segs -= np.tile(centre, 2)
 bbox = [segs.reshape(-1, 3).min(0).tolist(), segs.reshape(-1, 3).max(0).tolist()]
 offs = np.array(offs, np.uint32)
 buf = bytearray(); layout = {}
