@@ -18,7 +18,7 @@ app.innerHTML = `
 <aside id="params" hidden>
   <h2>Parameters <span class="muted">(restart applies)</span></h2>
   <div class="prow"><label>wiring</label><select id="p-shuffle"><option value="none">real connectome</option><option value="class">shuffled (class-preserving control)</option></select></div>
-  <div class="prow"><label>seed</label><input id="p-seed" type="number" value="1"></div>
+  <div class="prow"><label>seed <span class="muted">(same seed = identical replay)</span></label><span><input id="p-seed" type="number" value="1" class="short" style="width:5.5em"> <label><input id="p-randomSeed" type="checkbox" checked> new each restart</label></span></div>
   <div class="prow"><label>observation gain</label><input id="p-observeGain" type="number" step="0.05" min="0" max="2"></div>
   <div class="prow"><label>temperature</label><input id="p-temperature" type="number" step="0.05" min="0.05"></div>
   <div class="prow"><label>trust bias</label><input id="p-trustBias" type="number" step="0.05"></div>
@@ -64,10 +64,11 @@ document.getElementById('toggle-params')!.onclick = () => { const a = document.g
 let game: Game;
 async function startGame() {
   playing = false; game?.dispose(); history.length = 0;
+  if ($('p-randomSeed').checked) $('p-seed').value = String(1 + Math.floor(Math.random() * 1e6));
   const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode;
   status.textContent = 'spawning 9 brains…';
   game = await Game.create(circuit, p, async (id, seed) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed); return f; }, (m) => (status.textContent = m));
-  render(game.snapshot()); status.textContent = shuffle === 'none' ? 'ready' : 'ready (shuffled wiring)';
+  render(game.snapshot()); status.textContent = `ready · seed ${p.seed}${shuffle === 'none' ? '' : ' · shuffled wiring'}`;
 }
 document.getElementById('restart')!.onclick = () => void startGame();
 let playing = false, budget = 0, lastRender = 0;
@@ -89,7 +90,7 @@ async function loop() {
   }
   playing = false; playBtn.textContent = '▶ Play';
 }
-if (auto) { roundsIn.value = auto; speedIn.value = '100'; showSpeed(); playBtn.click(); }
+if (auto) { $('p-randomSeed').checked = false; roundsIn.value = auto; speedIn.value = '100'; showSpeed(); playBtn.click(); }
 
 function render(s: Snapshot) {
   const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
