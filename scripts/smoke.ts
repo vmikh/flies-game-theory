@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-const rounds = Number(process.argv[2] ?? 20), waitS = Number(process.argv[3] ?? 25);
+const rounds = Number(process.argv[2] ?? 20), waitS = Number(process.argv[3] ?? 25), speed = Number(process.argv[4] ?? 20);
 const prof = mkdtempSync(join(tmpdir(), 'chrome-smoke-')); const port = 9333;
 const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--no-first-run', `--user-data-dir=${prof}`, `--crash-dumps-dir=${prof}`, `--remote-debugging-port=${port}`, '--window-size=1400,1000', 'about:blank'], { stdio: 'ignore' });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -19,7 +19,7 @@ try {
     if (m.method === 'Runtime.exceptionThrown') logs.push(`EXCEPTION: ${m.params.exceptionDetails.text} ${m.params.exceptionDetails.exception?.description ?? ''}`); };
   const send = (method: string, params: any = {}) => new Promise<any>((r) => { const i = ++id; pending.set(i, r); ws!.send(JSON.stringify({ id: i, method, params })); });
   await send('Runtime.enable'); await send('Page.enable');
-  await send('Page.navigate', { url: `http://localhost:5173/?autoplay=${rounds}` });
+  await send('Page.navigate', { url: `http://localhost:5173/?autoplay=${rounds}&speed=${speed}` });
   const t0 = Date.now(); let status = '';
   while (Date.now() - t0 < waitS * 1000) { await sleep(1000); const r = await send('Runtime.evaluate', { expression: "document.getElementById('status')?.textContent ?? ''" }); status = r.result.value; if (/round \d+/.test(status) && /Play/.test((await send('Runtime.evaluate', { expression: "document.getElementById('play')?.textContent" })).result.value) && Number(status.match(/round (\d+)/)![1]) >= rounds) break; }
   console.log(`status after ${((Date.now() - t0) / 1000).toFixed(0)}s: ${status}`);

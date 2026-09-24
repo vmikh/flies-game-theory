@@ -6,7 +6,7 @@
  */
 import type { Circuit } from './circuit.ts';
 import { DEFAULT_PARAMS, mulberry32, type SimParams } from './sim.ts';
-import type { FlyBackend } from './backend.ts';
+import type { FlyBackend, Frames, DanPop } from './backend.ts';
 
 export interface GameParams {
   nFlies: number;
@@ -41,8 +41,11 @@ export interface Fly {
   base: Float32Array;       // naive mean spike count per MBON per opponent odour: [opp * nMbon + j]
   trust: Float32Array;      // last decision score per opponent
   activity: Uint16Array | null; lastOpp: number;   // whole-circuit spike counts of the last decision (visualisation)
+  movie: FlyMovie | null;                          // activity frames of the last decision and own-game teaching
   games: number; coops: number; defects: number; betrayed: number;
 }
+
+export interface FlyMovie { opp: number; decision: Frames | null; teach: Frames | null; dan: DanPop | null; valence: number }
 
 export interface GameRecord {
   round: number; a: number; b: number; ca: boolean; cb: boolean; pa: number; pb: number; scoreA: number; scoreB: number; pcA: number; pcB: number;
@@ -53,6 +56,8 @@ export interface Snapshot {
   flies: { id: number; name: string; money: number; alive: boolean; lineage: number; games: number; coops: number; defects: number; betrayed: number }[];
   trust: number[][];
   activity: (Uint16Array | null)[];   // per fly, whole-circuit spike counts of its last decision
+  movies: (FlyMovie | null)[];
+  pairs: { a: number; b: number; games: number; outcome: number; lastRound: number }[];   // social graph: outcome = mean(+1 CC, 0 mixed, −1 DD)
   last: GameRecord[];
 }
 
@@ -63,6 +68,8 @@ export class Game {
   approach: number[]; avoid: number[];
   mbon: number[]; valence: Int8Array;   // per MBON: +1 PPL1-compartment (approach when active), −1 PAM-compartment (avoid), 0 unassigned
   log: GameRecord[] = [];
+  recordFrames = false;   // set by the UI at slow speeds
+  pairStats = new Map<string, { a: number; b: number; games: number; sum: number; lastRound: number }>();
   private rng: () => number;
   get nMbon() { return this.mbon.length; }
 
@@ -98,7 +105,7 @@ export class Game {
   private async newFly(id: number, lineage: number, born: number, cloneOf?: Fly): Promise<Fly> {
     const be = await this.makeBackend(id, this.p.seed * 1000 + id * 17 + born);
     const f: Fly = { id, name: `F${id + 1}`, be, money: this.p.startMoney, alive: true, lineage, born,
-      base: new Float32Array(this.p.nFlies * this.nMbon), trust: new Float32Array(this.p.nFlies), activity: null, lastOpp: -1, games: 0, coops: 0, defects: 0, betrayed: 0 };
+      base: new Float32Array(this.p.nFlies * this.nMbon), trust: new Float32Array(this.p.nFlies), activity: null, lastOpp: -1, movie: null, games: 0, coops: 0, defects: 0, betrayed: 0 };
     if (cloneOf) {   // inherit memory + calibration; the parent's own odour is new to the clone
       await be.setPlastic(await cloneOf.be.getPlastic(), this.p.cloneJitter);
       f.base.set(cloneOf.base); f.trust.set(cloneOf.trust); f.trust[id] = 0;
@@ -109,7 +116,7 @@ export class Game {
     return f;
   }
 
-  counts(f: Fly, opp: number) { return f.be.counts(this.odors[opp], this.p.decisionMs, this.mbon); }
+  counts(f: Fly, opp: number, frames = false) { return f.be.counts(this.odors[opp], this.p.decisionMs, this.mbon, frames); }
 
   /** Naive response to an opponent odour, averaged over baselineReps presentations. */
   async calibrate(f: Fly, opp: number) {
@@ -127,7 +134,7 @@ export class Game {
       const rel = (c[j] - b) / b; if (this.valence[j] > 0) { ap += rel; nap++; } else { av += rel; nav++; } }
     return (nap ? ap / nap : 0) - (nav ? av / nav : 0);
   }
-  async score(f: Fly, opp: number) { const { c, all } = await this.counts(f, opp); f.activity = all; f.lastOpp = opp; return this.toScore(f, opp, c); }
+  async score(f: Fly, opp: number) { const { c, all, frames } = await this.counts(f, opp, this.recordFrames); f.activity = all; f.lastOpp = opp; f.movie = { opp, decision: frames ?? null, teach: null, dan: null, valence: 0 }; return this.toScore(f, opp, c); }
 
   async decide(f: Fly, opp: number): Promise<{ coop: boolean; score: number; pc: number }> {
     const s = await this.score(f, opp); f.trust[opp] = s;
@@ -136,9 +143,11 @@ export class Game {
   }
 
   /** Present odour with dopamine. valence>0 → PAM at rate ∝ valence, <0 → PPL1. */
-  teach(f: Fly, opp: number, valence: number, ms: number, gain = 1) {
-    if (valence === 0) return Promise.resolve();
-    return f.be.teach(this.odors[opp], valence > 0 ? 'PAM' : 'PPL1', Math.min(1, Math.abs(valence)) * gain, ms);
+  async teach(f: Fly, opp: number, valence: number, ms: number, gain = 1, record = false) {
+    if (valence === 0) return;
+    const dan: DanPop = valence > 0 ? 'PAM' : 'PPL1';
+    const fr = await f.be.teach(this.odors[opp], dan, Math.min(1, Math.abs(valence)) * gain, ms, record && this.recordFrames);
+    if (record && f.movie && f.movie.opp === opp) { f.movie.teach = fr; f.movie.dan = dan; f.movie.valence = valence; }
   }
 
   payoffValence(pay: number): number {   // map payoff to dopamine valence in [-1, 1]
@@ -168,7 +177,9 @@ export class Game {
       A.money += pa - this.p.ante; B.money += pb - this.p.ante; A.games++; B.games++;
       if (da.coop) A.coops++; else A.defects++; if (db.coop) B.coops++; else B.defects++;
       if (da.coop && !db.coop) A.betrayed++; if (db.coop && !da.coop) B.betrayed++;
-      q(ia, () => this.teach(A, ib, this.payoffValence(pa), this.p.learnMs)); q(ib, () => this.teach(B, ia, this.payoffValence(pb), this.p.learnMs));
+      q(ia, () => this.teach(A, ib, this.payoffValence(pa), this.p.learnMs, 1, true)); q(ib, () => this.teach(B, ia, this.payoffValence(pb), this.p.learnMs, 1, true));
+      const key = ia < ib ? `${ia}-${ib}` : `${ib}-${ia}`; const ps = this.pairStats.get(key) ?? { a: Math.min(ia, ib), b: Math.max(ia, ib), games: 0, sum: 0, lastRound: 0 };
+      ps.games++; ps.sum += da.coop && db.coop ? 1 : !da.coop && !db.coop ? -1 : 0; ps.lastRound = this.round; this.pairStats.set(key, ps);
       recs.push({ round: this.round, a: ia, b: ib, ca: da.coop, cb: db.coop, pa, pb, scoreA: da.score, scoreB: db.score, pcA: da.pc, pcB: db.pc });
       this.gamesPlayed++; this.coopTotal += (da.coop ? 1 : 0) + (db.coop ? 1 : 0); this.recent.push(da.coop, db.coop);
     });
@@ -196,7 +207,8 @@ export class Game {
       round: this.round, games: this.gamesPlayed, coopRate: this.gamesPlayed ? this.coopTotal / (2 * this.gamesPlayed) : 0,
       recentCoopRate: this.recent.length ? this.recent.filter(Boolean).length / this.recent.length : 0,
       flies: this.flies.map((f) => ({ id: f.id, name: f.name, money: f.money, alive: f.alive, lineage: f.lineage, games: f.games, coops: f.coops, defects: f.defects, betrayed: f.betrayed })),
-      trust: this.flies.map((f) => Array.from(f.trust)), activity: this.flies.map((f) => f.activity),
+      trust: this.flies.map((f) => Array.from(f.trust)), activity: this.flies.map((f) => f.activity), movies: this.flies.map((f) => f.movie),
+      pairs: [...this.pairStats.values()].map((p) => ({ a: p.a, b: p.b, games: p.games, outcome: p.sum / p.games, lastRound: p.lastRound })),
       last: this.log.slice(-Math.max(1, n)),
     };
   }

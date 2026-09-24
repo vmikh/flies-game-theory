@@ -1,4 +1,4 @@
-import type { FlyBackend, DanPop, Counts } from './backend.ts';
+import type { FlyBackend, DanPop, Counts, Frames } from './backend.ts';
 import type { SimParams } from './sim.ts';
 import type { ShuffleMode } from './shuffle.ts';
 
@@ -11,8 +11,8 @@ export class RemoteFly implements FlyBackend {
   }
   private call<T>(op: string, ...args: any[]): Promise<T> { const id = this.next++; return new Promise<T>((res, rej) => { this.pending.set(id, { res, rej }); this.w.postMessage({ id, op, args }); }); }
   init(params: SimParams, seed: number, shuffle: ShuffleMode = 'none', shuffleSeed = 1) { return this.call<void>('init', params, seed, shuffle, shuffleSeed); }
-  counts(odor: number[], ms: number, ids: number[]) { return this.call<Counts>('counts', odor, ms, ids); }
-  teach(odor: number[], dan: DanPop, rateScale: number, ms: number) { return this.call<void>('teach', odor, dan, rateScale, ms); }
+  counts(odor: number[], ms: number, ids: number[], frames?: boolean) { return this.call<Counts>('counts', odor, ms, ids, frames); }
+  teach(odor: number[], dan: DanPop, rateScale: number, ms: number, frames?: boolean) { return this.call<Frames | null>('teach', odor, dan, rateScale, ms, frames); }
   forget(rate: number) { return this.call<void>('forget', rate); }
   getPlastic() { return this.call<Float32Array>('getPlastic'); }
   setPlastic(p: Float32Array, jitter: number) { return this.call<void>('setPlastic', p, jitter); }

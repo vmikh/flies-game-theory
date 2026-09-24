@@ -84,6 +84,7 @@ playBtn.onclick = () => { if (playing) { playing = false; playBtn.textContent = 
 async function loop() {
   while (playing && budget > 0) {
     const t0 = performance.now();
+    game.recordFrames = speedX <= 2;   // activity movies only when slow enough to watch
     await game.playRound(); budget--;
     const s = game.snapshot(); history.push({ round: s.round, coop: s.recentCoopRate });
     const now = performance.now();
@@ -94,7 +95,7 @@ async function loop() {
   }
   playing = false; playBtn.textContent = '▶ Play'; budget = Infinity;
 }
-if (auto) { $('p-randomSeed').checked = false; budget = Number(auto); speedX = 20; playBtn.click(); }
+if (auto) { $('p-randomSeed').checked = false; budget = Number(auto); speedX = Number(new URLSearchParams(location.search).get('speed') ?? 20); playBtn.click(); }
 
 function render(s: Snapshot) {
   arena.update(s);
