@@ -2,6 +2,7 @@ import * as d3 from 'd3';
 import { Circuit } from './circuit.ts';
 import { Game, DEFAULT_GAME, type Snapshot } from './game.ts';
 import { RemoteFly } from './remoteFly.ts';
+import type { ShuffleMode } from './shuffle.ts';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
@@ -12,7 +13,24 @@ app.innerHTML = `
   <label>rounds <input id="rounds" type="number" placeholder="∞" min="1" style="width:5em"></label>
   <label>speed <input id="speed" type="range" min="0" max="100" value="60" style="width:10em"> <span id="speedv" class="muted"></span></label>
   <button id="play">▶ Play</button>
+  <button id="toggle-params">Parameters</button>
 </header>
+<aside id="params" hidden>
+  <h2>Parameters <span class="muted">(restart applies)</span></h2>
+  <div class="prow"><label>wiring</label><select id="p-shuffle"><option value="none">real connectome</option><option value="class">shuffled (class-preserving control)</option></select></div>
+  <div class="prow"><label>seed</label><input id="p-seed" type="number" value="1"></div>
+  <div class="prow"><label>observation gain</label><input id="p-observeGain" type="number" step="0.05" min="0" max="2"></div>
+  <div class="prow"><label>temperature</label><input id="p-temperature" type="number" step="0.05" min="0.05"></div>
+  <div class="prow"><label>trust bias</label><input id="p-trustBias" type="number" step="0.05"></div>
+  <div class="prow"><label>forgetting / round</label><input id="p-forgetPerRound" type="number" step="0.01" min="0" max="1"></div>
+  <div class="prow"><label>decision window, ms</label><input id="p-decisionMs" type="number" step="50" min="100"></div>
+  <div class="prow"><label>learning window, ms</label><input id="p-learnMs" type="number" step="50" min="50"></div>
+  <div class="prow"><label>payoff T / R / P / S</label><span><input id="p-T" type="number" class="short"> <input id="p-R" type="number" class="short"> <input id="p-P" type="number" class="short"> <input id="p-S" type="number" class="short"></span></div>
+  <div class="prow"><label>ante per game</label><input id="p-ante" type="number" step="0.5"></div>
+  <div class="prow"><label>start money</label><input id="p-startMoney" type="number"></div>
+  <div class="prow"><label>clone jitter</label><input id="p-cloneJitter" type="number" step="0.05" min="0"></div>
+  <button id="restart">Restart with these parameters</button>
+</aside>
 <main class="grid">
   <section id="board"><h2>Ranking</h2><div id="lb"></div></section>
   <section id="trust"><h2>Trust matrix <span class="muted">row = fly, col = opponent; green = approach, red = avoid, vs naive</span></h2><svg id="tm"></svg></section>
@@ -32,13 +50,31 @@ const showSpeed = () => { const r = targetRps(); speedV.textContent = r === Infi
 speedIn.oninput = showSpeed; showSpeed();
 
 const circuit = await Circuit.load();
-status.textContent = 'spawning 9 brains…';
-const game = await Game.create(circuit, DEFAULT_GAME, async (id, seed) => { const f = new RemoteFly(); await f.init(DEFAULT_GAME.sim, seed); return f; }, (m) => (status.textContent = m));
-render(game.snapshot()); status.textContent = 'ready';
+const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+const NUM_FIELDS = ['observeGain', 'temperature', 'trustBias', 'forgetPerRound', 'decisionMs', 'learnMs', 'ante', 'startMoney', 'cloneJitter'] as const;
+function fillParams(p: typeof DEFAULT_GAME) { for (const k of NUM_FIELDS) $(`p-${k}`).value = String(p[k]); for (const k of ['T', 'R', 'P', 'S'] as const) $(`p-${k}`).value = String(p.payoff[k]); $('p-seed').value = String(p.seed); }
+function readParams(): typeof DEFAULT_GAME {
+  const p: any = { ...DEFAULT_GAME, payoff: { ...DEFAULT_GAME.payoff } };
+  for (const k of NUM_FIELDS) p[k] = Number($(`p-${k}`).value); for (const k of ['T', 'R', 'P', 'S'] as const) p.payoff[k] = Number($(`p-${k}`).value); p.seed = Number($('p-seed').value);
+  return p;
+}
+fillParams(DEFAULT_GAME);
+document.getElementById('toggle-params')!.onclick = () => { const a = document.getElementById('params')!; a.hidden = !a.hidden; };
+
+let game: Game;
+async function startGame() {
+  playing = false; game?.dispose(); history.length = 0;
+  const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode;
+  status.textContent = 'spawning 9 brains…';
+  game = await Game.create(circuit, p, async (id, seed) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed); return f; }, (m) => (status.textContent = m));
+  render(game.snapshot()); status.textContent = shuffle === 'none' ? 'ready' : 'ready (shuffled wiring)';
+}
+document.getElementById('restart')!.onclick = () => void startGame();
+let playing = false, budget = 0, lastRender = 0;
+await startGame();
 // ?autoplay=N starts N rounds immediately (used for headless smoke tests)
 const auto = new URLSearchParams(location.search).get('autoplay');
 
-let playing = false, budget = 0, lastRender = 0;
 playBtn.onclick = () => { if (playing) { playing = false; playBtn.textContent = '▶ Play'; return; } budget = roundsIn.value ? Number(roundsIn.value) : Infinity; playing = true; playBtn.textContent = '❚❚ Pause'; void loop(); };
 async function loop() {
   while (playing && budget > 0) {

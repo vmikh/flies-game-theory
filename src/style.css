@@ -18,3 +18,10 @@ section h2 { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-tran
 .lbl { fill: var(--muted); font-size: 11px; }
 .ax text, .ay text { fill: var(--muted); font-size: 10px; } .ax path, .ay path, .ax line, .ay line { stroke: #2a2f3a; }
 pre { margin: 0; font-size: 12px; color: var(--fg); }
+
+#params { position: absolute; right: 16px; top: 52px; z-index: 5; background: #10131a; border: 1px solid #2a2f3a; border-radius: 6px; padding: 12px 14px; width: 340px; }
+#app { position: relative; }
+.prow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 3px 0; font-size: 13px; }
+.prow input, .prow select { background: #161a22; color: var(--fg); border: 1px solid #2a2f3a; border-radius: 4px; padding: 3px 6px; font: inherit; width: 7em; }
+.prow input.short { width: 3.2em; }
+#params button { margin-top: 8px; width: 100%; background: #1f2430; color: var(--fg); border: 1px solid #2a2f3a; border-radius: 4px; padding: 6px; font: inherit; }
