@@ -44,6 +44,11 @@ const status = document.getElementById('status')!;
 const playBtn = document.getElementById('play') as HTMLButtonElement;
 const history: { round: number; coop: number }[] = [];
 let lastSnap: Snapshot | null = null;
+/** Three tiny bars: cooperation on first meeting, after the opponent cooperated, after it defected. */
+function stratGlyph(s: Snapshot['flies'][number]['strategy']) {
+  const bar = (v: number | null, t: string) => `<i title="${t}: ${v === null ? 'n/a' : Math.round(100 * v) + '%'}" style="height:${v === null ? 2 : 2 + 12 * v}px;opacity:${v === null ? 0.3 : 1}"></i>`;
+  return `<span class="bars">${bar(s.trust, 'first meeting')}${bar(s.reciprocity, 'after opponent cooperated')}${bar(s.forgiveness, 'after opponent defected')}</span>`;
+}
 /** Speed: 1× = one round every 2 s (a game every half second); 20× ≈ as fast as the machine goes. */
 let speedX = 1; const BASE_RPS = 0.5;
 const speedSeg = document.getElementById('speed')!;
@@ -80,7 +85,8 @@ const capEl = document.getElementById('caption')!, capText = document.getElement
 function caption(b: number) {
   const s = lastSnap; if (!s) return; const f = s.flies[b]; const m = s.movies[b];
   const rec = [...s.last].reverse().find((r) => r.a === b || r.b === b);
-  let html = `<b>${f.name}</b> · ${f.money.toFixed(0)} money · ${f.games} games · cooperates ${f.games ? Math.round(100 * f.coops / f.games) : 0}%`;
+  const st = f.strategy; const pct = (v: number | null) => (v === null ? '?' : Math.round(100 * v) + '%');
+  let html = `<b>${f.name}</b> · ${f.money.toFixed(0)} money · ${f.games} games · cooperates ${f.games ? Math.round(100 * f.coops / f.games) : 0}% · <b>${st.label}</b> <span class="muted">(first meeting ${pct(st.trust)}, after C ${pct(st.reciprocity)}, after D ${pct(st.forgiveness)})</span>`;
   if (rec) { const me = rec.a === b; const opp = me ? rec.b : rec.a; const myC = me ? rec.ca : rec.cb, oppC = me ? rec.cb : rec.ca, pay = me ? rec.pa : rec.pb, sc = me ? rec.scoreA : rec.scoreB, pc = me ? rec.pcA : rec.pcB;
     html += `<br>Last game, round ${rec.round}: smells <b>F${opp + 1}</b> → approach−avoid <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b> → cooperates with p=${pc.toFixed(2)} → <b>${myC ? 'COOPERATES' : 'DEFECTS'}</b>; F${opp + 1} ${oppC ? 'cooperates' : 'defects'} → payoff <b>${pay}</b> → ${pay >= 3 ? '<span class="pam">reward (PAM dopamine)</span>' : '<span class="ppl1">punishment (PPL1 dopamine)</span>'}`; }
   if (m && !m.decision) html += `<br><span class="muted">activity movie is recorded at 1× and 2× only</span>`;
@@ -119,7 +125,8 @@ function render(s: Snapshot) {
     return `<span class="name">${f.name}${f.lineage !== f.id ? `<sub>←F${f.lineage + 1}</sub>` : ''}</span>
       <span class="bar"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span>
       <span class="num">${f.money.toFixed(0)}</span>
-      <span class="muted small">${f.games} games · coop ${(100 * cr).toFixed(0)}% · betrayed ${f.betrayed}</span>`;
+      <span class="muted small">${f.games} games · coop ${(100 * cr).toFixed(0)}% · betrayed ${f.betrayed}</span>
+      <span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${f.strategy.label}</span></span>`;
   });
   const n = s.flies.length, cell = 26, pad = 24; const svg = d3.select('#tm').attr('width', pad + n * cell).attr('height', pad + n * cell);
   const color = d3.scaleDiverging([-1, 0, 1], (t) => d3.interpolateRgbBasis([DEFECT, '#1a1d24', COOP])(t)).clamp(true);

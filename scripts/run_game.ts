@@ -12,4 +12,5 @@ for (let r = 0; r < rounds; r++) {
 console.log(`time/round ${((performance.now() - t0) / rounds / 1000).toFixed(2)}s`);
 const s = g.snapshot();
 console.log('trust matrix (row fly → col opponent):'); for (const row of s.trust) console.log('  ' + row.map((v) => v.toFixed(2).padStart(6)).join(''));
-console.log('final:', s.flies.sort((a, b) => b.money - a.money).map((f) => `${f.name}(${f.lineage !== f.id ? 'clone of F' + (f.lineage + 1) : ''}) $${f.money.toFixed(0)} coop ${f.games ? (100 * f.coops / f.games).toFixed(0) : 0}%`).join(' | '));
+const pct = (v: number | null) => (v === null ? '?' : Math.round(100 * v) + '%');
+console.log('final:'); for (const f of s.flies.sort((a, b) => b.money - a.money)) console.log(`  ${f.name}${f.lineage !== f.id ? '(clone of F' + (f.lineage + 1) + ')' : ''} $${String(f.money.toFixed(0)).padStart(3)} coop ${String(f.games ? (100 * f.coops / f.games).toFixed(0) : 0).padStart(3)}%  ${f.strategy.label.padEnd(22)} first ${pct(f.strategy.trust)} afterC ${pct(f.strategy.reciprocity)} afterD ${pct(f.strategy.forgiveness)}`);
