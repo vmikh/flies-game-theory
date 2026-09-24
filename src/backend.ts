@@ -3,10 +3,12 @@ import type { Circuit } from './circuit.ts';
 import { MBSim, type SimParams } from './sim.ts';
 
 export type DanPop = 'PAM' | 'PPL1';
+/** Spike counts of the readout neurons plus of every neuron in the circuit (for visualisation). */
+export interface Counts { c: Float32Array; all: Uint16Array }
 
 export interface FlyBackend {
   /** Present odour for `ms`, return spike counts of the given neuron ids. */
-  counts(odor: number[], ms: number, ids: number[]): Promise<Float32Array>;
+  counts(odor: number[], ms: number, ids: number[]): Promise<Counts>;
   /** Present odour with dopamine population driven at rate × danRate; learning on. */
   teach(odor: number[], dan: DanPop, rateScale: number, ms: number): Promise<void>;
   forget(rate: number): Promise<void>;
@@ -19,7 +21,7 @@ export interface FlyBackend {
 export class LocalFly implements FlyBackend {
   readonly sim: MBSim; private PAM: number[]; private PPL1: number[]; private rng = Math.random;
   constructor(c: Circuit, params: SimParams, seed: number) { this.sim = new MBSim(c, params, seed); this.PAM = c.idsByPrefix('DAN', 'PAM'); this.PPL1 = c.idsByPrefix('DAN', 'PPL1'); }
-  async counts(odor: number[], ms: number, ids: number[]) { const s = this.sim; s.resetState(); for (let t = 0; t < ms; t++) s.step(odor, null, false); return Float32Array.from(ids, (i) => s.rateCount[i]); }
+  async counts(odor: number[], ms: number, ids: number[]): Promise<Counts> { const s = this.sim; s.resetState(); for (let t = 0; t < ms; t++) s.step(odor, null, false); return { c: Float32Array.from(ids, (i) => s.rateCount[i]), all: Uint16Array.from(s.rateCount) }; }
   async teach(odor: number[], dan: DanPop, rateScale: number, ms: number) {
     const s = this.sim; s.resetState(); const pop = dan === 'PAM' ? this.PAM : this.PPL1; const r0 = s.p.danRate; (s.p as SimParams).danRate = r0 * rateScale;
     for (let t = 0; t < ms; t++) s.step(odor, t > 40 ? pop : null, true);

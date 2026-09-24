@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 const rounds = Number(process.argv[2] ?? 20), waitS = Number(process.argv[3] ?? 25);
 const prof = mkdtempSync(join(tmpdir(), 'chrome-smoke-')); const port = 9333;
-const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--disable-gpu', '--no-first-run', `--user-data-dir=${prof}`, `--crash-dumps-dir=${prof}`, `--remote-debugging-port=${port}`, '--window-size=1400,1000', 'about:blank'], { stdio: 'ignore' });
+const chrome = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', ['--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--no-first-run', `--user-data-dir=${prof}`, `--crash-dumps-dir=${prof}`, `--remote-debugging-port=${port}`, '--window-size=1400,1000', 'about:blank'], { stdio: 'ignore' });
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 let ws: WebSocket | null = null;
 try {

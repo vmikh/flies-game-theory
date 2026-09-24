@@ -10,9 +10,14 @@ canvas { display: block; width: 100%; height: 100%; }
 header .spacer { flex: 1; }
 header button, header input { background: #161a22; color: var(--fg); border: 1px solid #2a2f3a; border-radius: 4px; padding: 4px 10px; font: inherit; }
 header button:hover { background: #1f2430; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; gap: 16px; padding: 16px; overflow: auto; }
+.layout { display: grid; grid-template-columns: 1fr 340px; min-height: 0; height: 100%; }
+#arena { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+#arena canvas { width: 100% !important; height: 100% !important; display: block; }
+.arena-label { position: absolute; left: 0; top: 0; pointer-events: none; font-size: 12px; color: var(--muted); white-space: nowrap; will-change: transform; }
+.arena-label.dead { opacity: 0.35; text-decoration: line-through; }
+.side { display: flex; flex-direction: column; gap: 14px; padding: 12px 14px; overflow: auto; border-left: 1px solid #1c2028; }
 section h2 { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
-.row { display: grid; grid-template-columns: 3.2em 1fr 3em auto; gap: 10px; align-items: center; padding: 3px 0; }
+.row { display: grid; grid-template-columns: 2.6em 1fr 2.6em; gap: 8px; align-items: center; padding: 2px 0; font-size: 13px; } .row .small { grid-column: 1 / -1; padding-left: 0; font-size: 11px; margin-top: -2px; }
 .row .bar { height: 10px; background: #161a22; border-radius: 2px; overflow: hidden; } .row .bar i { display: block; height: 100%; background: #4cc9a4; }
 .row .num { text-align: right; font-variant-numeric: tabular-nums; } .small { font-size: 12px; }
 .lbl { fill: var(--muted); font-size: 11px; }
@@ -25,3 +30,7 @@ pre { margin: 0; font-size: 12px; color: var(--fg); }
 .prow input, .prow select { background: #161a22; color: var(--fg); border: 1px solid #2a2f3a; border-radius: 4px; padding: 3px 6px; font: inherit; width: 7em; }
 .prow input.short { width: 3.2em; }
 #params button { margin-top: 8px; width: 100%; background: #1f2430; color: var(--fg); border: 1px solid #2a2f3a; border-radius: 4px; padding: 6px; font: inherit; }
+
+.seg { display: inline-flex; border: 1px solid #2a2f3a; border-radius: 4px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; border-right: 1px solid #2a2f3a; padding: 4px 9px; }
+.seg button:last-child { border-right: 0; } .seg button.on { background: #2b3444; color: #fff; }

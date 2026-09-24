@@ -40,6 +40,7 @@ export interface Fly {
   id: number; name: string; be: FlyBackend; money: number; alive: boolean; lineage: number; born: number;
   base: Float32Array;       // naive mean spike count per MBON per opponent odour: [opp * nMbon + j]
   trust: Float32Array;      // last decision score per opponent
+  activity: Uint16Array | null; lastOpp: number;   // whole-circuit spike counts of the last decision (visualisation)
   games: number; coops: number; defects: number; betrayed: number;
 }
 
@@ -51,6 +52,7 @@ export interface Snapshot {
   round: number; games: number; coopRate: number; recentCoopRate: number;
   flies: { id: number; name: string; money: number; alive: boolean; lineage: number; games: number; coops: number; defects: number; betrayed: number }[];
   trust: number[][];
+  activity: (Uint16Array | null)[];   // per fly, whole-circuit spike counts of its last decision
   last: GameRecord[];
 }
 
@@ -96,7 +98,7 @@ export class Game {
   private async newFly(id: number, lineage: number, born: number, cloneOf?: Fly): Promise<Fly> {
     const be = await this.makeBackend(id, this.p.seed * 1000 + id * 17 + born);
     const f: Fly = { id, name: `F${id + 1}`, be, money: this.p.startMoney, alive: true, lineage, born,
-      base: new Float32Array(this.p.nFlies * this.nMbon), trust: new Float32Array(this.p.nFlies), games: 0, coops: 0, defects: 0, betrayed: 0 };
+      base: new Float32Array(this.p.nFlies * this.nMbon), trust: new Float32Array(this.p.nFlies), activity: null, lastOpp: -1, games: 0, coops: 0, defects: 0, betrayed: 0 };
     if (cloneOf) {   // inherit memory + calibration; the parent's own odour is new to the clone
       await be.setPlastic(await cloneOf.be.getPlastic(), this.p.cloneJitter);
       f.base.set(cloneOf.base); f.trust.set(cloneOf.trust); f.trust[id] = 0;
@@ -112,7 +114,7 @@ export class Game {
   /** Naive response to an opponent odour, averaged over baselineReps presentations. */
   async calibrate(f: Fly, opp: number) {
     const n = this.nMbon, o = opp * n; f.base.fill(0, o, o + n);
-    for (let r = 0; r < this.p.baselineReps; r++) { const c = await this.counts(f, opp); for (let j = 0; j < n; j++) f.base[o + j] += c[j] / this.p.baselineReps; }
+    for (let r = 0; r < this.p.baselineReps; r++) { const { c } = await this.counts(f, opp); for (let j = 0; j < n; j++) f.base[o + j] += c[j] / this.p.baselineReps; }
   }
 
   /**
@@ -125,7 +127,7 @@ export class Game {
       const rel = (c[j] - b) / b; if (this.valence[j] > 0) { ap += rel; nap++; } else { av += rel; nav++; } }
     return (nap ? ap / nap : 0) - (nav ? av / nav : 0);
   }
-  async score(f: Fly, opp: number) { return this.toScore(f, opp, await this.counts(f, opp)); }
+  async score(f: Fly, opp: number) { const { c, all } = await this.counts(f, opp); f.activity = all; f.lastOpp = opp; return this.toScore(f, opp, c); }
 
   async decide(f: Fly, opp: number): Promise<{ coop: boolean; score: number; pc: number }> {
     const s = await this.score(f, opp); f.trust[opp] = s;
@@ -194,7 +196,7 @@ export class Game {
       round: this.round, games: this.gamesPlayed, coopRate: this.gamesPlayed ? this.coopTotal / (2 * this.gamesPlayed) : 0,
       recentCoopRate: this.recent.length ? this.recent.filter(Boolean).length / this.recent.length : 0,
       flies: this.flies.map((f) => ({ id: f.id, name: f.name, money: f.money, alive: f.alive, lineage: f.lineage, games: f.games, coops: f.coops, defects: f.defects, betrayed: f.betrayed })),
-      trust: this.flies.map((f) => Array.from(f.trust)),
+      trust: this.flies.map((f) => Array.from(f.trust)), activity: this.flies.map((f) => f.activity),
       last: this.log.slice(-Math.max(1, n)),
     };
   }
