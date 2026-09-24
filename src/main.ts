@@ -70,7 +70,7 @@ async function startGame() {
   playing = false; game?.dispose(); history.length = 0;
   if ($('p-randomSeed').checked) $('p-seed').value = String(1 + Math.floor(Math.random() * 1e6));
   const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode;
-  status.textContent = 'spawning 9 brains…';
+  status.textContent = 'spawning ${DEFAULT_GAME.nFlies} brains…';
   game = await Game.create(circuit, p, async (id, seed) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed); return f; }, (m) => (status.textContent = m));
   render(game.snapshot()); status.textContent = `ready · seed ${p.seed}${shuffle === 'none' ? '' : ' · shuffled wiring'}`;
 }

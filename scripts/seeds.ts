@@ -1,6 +1,6 @@
 import { loadCircuit, makeGame } from './node_flies.ts';
 const c = loadCircuit(); const rounds = Number(process.argv[2] ?? 30); const seeds = Number(process.argv[3] ?? 5);
-const rankSum = new Array(9).fill(0);
+const rankSum = new Array(8).fill(0);
 for (let s = 1; s <= seeds; s++) {
   const g = await makeGame(c, { seed: s }); for (let r = 0; r < rounds; r++) await g.playRound();
   const fl = [...g.snapshot().flies].sort((a, b) => b.money - a.money);

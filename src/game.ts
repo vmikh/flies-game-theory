@@ -30,7 +30,7 @@ export interface GameParams {
 }
 
 export const DEFAULT_GAME: GameParams = {
-  nFlies: 9, glomPerOdor: 7, decisionMs: 600, learnMs: 400, observeMs: 300, observeGain: 0.1,
+  nFlies: 8, glomPerOdor: 7, decisionMs: 600, learnMs: 400, observeMs: 300, observeGain: 0.1,
   temperature: 0.5, trustBias: 0, payoff: { T: 5, R: 3, P: 1, S: 0 }, ante: 2, startMoney: 30,
   baselineReps: 6, responsiveMin: 3, minDanInput: 20, forgetPerRound: 0.05, cloneJitter: 0.1,
   sim: DEFAULT_PARAMS, seed: 1,
