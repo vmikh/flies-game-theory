@@ -19,21 +19,23 @@ export interface GameParams {
   ante: number;               // paid by both players each game
   startMoney: number;
   baselineReps: number;
+  responsiveMin: number;      // MBON counts in the naive readout below this are ignored (spikes per decision window)
+  minDanInput: number;        // MBONs with less DAN input (synapses) get no valence
   forgetPerRound: number;     // plastic factors relax toward 1 by this fraction each round
   sim: SimParams;
   seed: number;
 }
 
 export const DEFAULT_GAME: GameParams = {
-  nFlies: 9, glomPerOdor: 7, decisionMs: 600, learnMs: 400, observeMs: 300, observeGain: 0.4,
-  temperature: 0.25, trustBias: 0, payoff: { T: 5, R: 3, P: 1, S: 0 }, ante: 2, startMoney: 30, baselineReps: 2, forgetPerRound: 0.02,
+  nFlies: 9, glomPerOdor: 7, decisionMs: 600, learnMs: 400, observeMs: 300, observeGain: 0.1,
+  temperature: 0.5, trustBias: 0, payoff: { T: 5, R: 3, P: 1, S: 0 }, ante: 2, startMoney: 30, baselineReps: 6, responsiveMin: 3, minDanInput: 20, forgetPerRound: 0.05,
   sim: DEFAULT_PARAMS, seed: 1,
 };
 
 export interface Fly {
   id: number; name: string; sim: MBSim; money: number; alive: boolean; lineage: number; born: number;
-  baseline: Float32Array;   // naive score per opponent odour
-  apRef: number; avRef: number; // naive mean approach / avoid counts (normalisation)
+  baseline: Float32Array;   // kept at 0 (score is defined relative to the naive response)
+  base: Float32Array;       // naive mean spike count per MBON per opponent odour: [opp * nMbon + j]
   trust: Float32Array;      // last decision score (baseline-subtracted) per opponent
   games: number; coops: number; defects: number; betrayed: number;
 }
@@ -52,6 +54,8 @@ export interface Snapshot {
 export class Game {
   flies: Fly[] = []; odors: number[][] = []; round = 0; gamesPlayed = 0; coopTotal = 0; recent: boolean[] = [];
   PAM: number[]; PPL1: number[]; approach: number[]; avoid: number[];
+  mbon: number[]; valence: Int8Array;   // per MBON: +1 PPL1-compartment (approach when active), −1 PAM-compartment (avoid), 0 unassigned
+  get nMbon() { return this.mbon.length; }
   log: GameRecord[] = [];
   private rng: () => number;
   onProgress?: (msg: string) => void;
@@ -59,9 +63,13 @@ export class Game {
   constructor(readonly c: Circuit, readonly p: GameParams = DEFAULT_GAME) {
     this.rng = mulberry32(p.seed);
     this.PAM = c.idsByPrefix('DAN', 'PAM'); this.PPL1 = c.idsByPrefix('DAN', 'PPL1');
-    const mbon = c.ids('MBON');
-    const AP = new Set(['MBON11', 'MBON12', 'MBON14']), AV = new Set(['MBON01', 'MBON02', 'MBON03', 'MBON05', 'MBON06']);
-    this.approach = mbon.filter((i) => AP.has(c.typeName[i])); this.avoid = mbon.filter((i) => AV.has(c.typeName[i]));
+    const mbon = c.ids('MBON'); this.mbon = mbon; const m0 = c.range('MBON')[0];
+    // compartment valence from the connectome: which dopamine population innervates each MBON
+    const pam = new Float32Array(mbon.length), ppl1 = new Float32Array(mbon.length);
+    for (const d of c.ids('DAN')) for (let k = c.indptr[d]; k < c.indptr[d + 1]; k++) { const j = c.indices[k] - m0; if (j < 0 || j >= mbon.length) continue;
+      if (c.typeName[d].startsWith('PAM')) pam[j] += c.weights[k]; else if (c.typeName[d].startsWith('PPL1')) ppl1[j] += c.weights[k]; }
+    this.valence = Int8Array.from(mbon, (_, j) => (pam[j] + ppl1[j] < p.minDanInput ? 0 : ppl1[j] > pam[j] ? 1 : -1));
+    this.approach = mbon.filter((_, j) => this.valence[j] > 0); this.avoid = mbon.filter((_, j) => this.valence[j] < 0);
     this.odors = this.makeOdors(p.nFlies, p.glomPerOdor);
     for (let i = 0; i < p.nFlies; i++) this.flies.push(this.newFly(i, i, 0));
   }
@@ -80,31 +88,40 @@ export class Game {
     const sim = new MBSim(this.c, this.p.sim, this.p.seed * 1000 + id * 17 + born);
     if (cloneOf) { sim.plastic.set(cloneOf.sim.plastic); for (let e = 0; e < sim.plastic.length; e++) sim.plastic[e] = Math.min(1, Math.max(this.p.sim.plasticMin, sim.plastic[e] * (0.9 + 0.2 * this.rng()))); }
     const f: Fly = { id, name: `F${id + 1}`, sim, money: this.p.startMoney, alive: true, lineage, born,
-      baseline: new Float32Array(this.p.nFlies), trust: new Float32Array(this.p.nFlies), apRef: 1, avRef: 1, games: 0, coops: 0, defects: 0, betrayed: 0 };
+      baseline: new Float32Array(this.p.nFlies), trust: new Float32Array(this.p.nFlies), base: new Float32Array(this.p.nFlies * this.nMbon), games: 0, coops: 0, defects: 0, betrayed: 0 };
     if (cloneOf) {   // inherit the parent's calibration (its memory is copied, so its baselines still apply); own odour is new
-      f.apRef = cloneOf.apRef; f.avRef = cloneOf.avRef; f.baseline.set(cloneOf.baseline); f.trust.set(cloneOf.trust);
-      f.baseline[id] = 0; f.trust[id] = 0;
-      if (cloneOf.id !== id) { let s = 0; for (let r = 0; r < this.p.baselineReps; r++) s += this.score(f, cloneOf.id); f.baseline[cloneOf.id] = s / this.p.baselineReps; f.trust[cloneOf.id] = 0; }
+      f.base.set(cloneOf.base); f.trust.set(cloneOf.trust);
+      f.trust[id] = 0; f.baseline[id] = 0;
+      if (cloneOf.id !== id) { this.calibrate(f, cloneOf.id); f.trust[cloneOf.id] = 0; }
       return f;
     }
-    // naive readout: per-fly normalisation constants, then per-opponent baseline
-    const raw: [number, number][][] = [];
-    for (let o = 0; o < this.p.nFlies; o++) { raw.push([]); if (o === id) continue; for (let r = 0; r < this.p.baselineReps; r++) raw[o].push(this.counts(f, o)); }
-    const all = raw.flat(); f.apRef = Math.max(1, all.reduce((a, x) => a + x[0], 0) / all.length); f.avRef = Math.max(1, all.reduce((a, x) => a + x[1], 0) / all.length);
-    for (let o = 0; o < this.p.nFlies; o++) if (o !== id) f.baseline[o] = raw[o].reduce((a, x) => a + this.toScore(f, x), 0) / raw[o].length;
+    for (let o = 0; o < this.p.nFlies; o++) if (o !== id) this.calibrate(f, o);
     return f;
   }
 
-  /** Present opponent odour, return mean spike counts of (approach, avoid) MBONs. */
-  counts(f: Fly, opp: number): [number, number] {
+  /** Present opponent odour for the decision window; returns per-MBON spike counts. */
+  counts(f: Fly, opp: number): Float32Array {
     const sim = f.sim; sim.resetState(); const od = this.odors[opp];
     for (let t = 0; t < this.p.decisionMs; t++) sim.step(od, null, false);
-    let ap = 0, av = 0; for (const i of this.approach) ap += sim.rateCount[i]; for (const i of this.avoid) av += sim.rateCount[i];
-    return [ap / this.approach.length, av / this.avoid.length];
+    return Float32Array.from(this.mbon, (i) => sim.rateCount[i]);
   }
-  /** Symmetric score in ≈[-1, 1]: approach and avoid each normalised by the fly's naive mean. */
-  toScore(f: Fly, c: [number, number]): number { return c[0] / f.apRef - c[1] / f.avRef; }
-  score(f: Fly, opp: number): number { return this.toScore(f, this.counts(f, opp)); }
+  /** Naive response to an opponent odour, averaged over baselineReps presentations. */
+  calibrate(f: Fly, opp: number) {
+    const n = this.nMbon, o = opp * n; f.base.fill(0, o, o + n);
+    for (let r = 0; r < this.p.baselineReps; r++) { const c = this.counts(f, opp); for (let j = 0; j < n; j++) f.base[o + j] += c[j] / this.p.baselineReps; }
+    f.baseline[opp] = 0;
+  }
+  /**
+   * Score ≈ [-1, 1]: mean relative change of responsive approach MBONs minus that of responsive avoid MBONs.
+   * 0 when naive; −1 when the approach pathway for this odour is fully silenced; +1 when the avoid pathway is.
+   */
+  toScore(f: Fly, opp: number, c: Float32Array): number {
+    const n = this.nMbon, o = opp * n; let ap = 0, nap = 0, av = 0, nav = 0;
+    for (let j = 0; j < n; j++) { const b = f.base[o + j]; if (b < this.p.responsiveMin || this.valence[j] === 0) continue;
+      const rel = (c[j] - b) / b; if (this.valence[j] > 0) { ap += rel; nap++; } else { av += rel; nav++; } }
+    return (nap ? ap / nap : 0) - (nav ? av / nav : 0);
+  }
+  score(f: Fly, opp: number): number { return this.toScore(f, opp, this.counts(f, opp)); }
 
   decide(f: Fly, opp: number): { coop: boolean; score: number; pc: number } {
     const s = this.score(f, opp) - f.baseline[opp]; f.trust[opp] = s;

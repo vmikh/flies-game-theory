@@ -8,7 +8,8 @@ import type { Circuit } from './circuit.ts';
 export interface SimParams {
   vRest: number; vTh: number; vReset: number; tauM: number; tauSyn: number; refrac: number;
   wScale: number;            // mV per synapse (Shiu et al. 2024: 0.275)
-  gain: { pnKc: number; aplKc: number; kcKc: number; pnPn: number; kcMbon: number };
+  gain: { pnKc: number; aplKc: number; kcKc: number; pnPn: number; kcMbon: number; kcMbonAvoid: number };
+  avoidTypes: string[];      // MBON types whose KC input gets the extra kcMbonAvoid gain
   normalisePnKc: boolean;    // equalise total PN drive per KC
   normaliseKcMbon: boolean;  // equalise total KC drive per MBON
   odorRate: number; odorKick: number;   // Poisson events/ms and mV per event for driven PNs
@@ -21,7 +22,8 @@ export interface SimParams {
 export const DEFAULT_PARAMS: SimParams = {
   vRest: -52, vTh: -45, vReset: -52, tauM: 20, tauSyn: 5, refrac: 2,
   wScale: 0.275,
-  gain: { pnKc: 2.5, aplKc: 1.0, kcKc: 0.0, pnPn: 0.0, kcMbon: 6.0 },
+  gain: { pnKc: 2.5, aplKc: 1.0, kcKc: 0.0, pnPn: 0.0, kcMbon: 6.0, kcMbonAvoid: 1.0 },
+  avoidTypes: ['MBON01', 'MBON02', 'MBON03', 'MBON05', 'MBON06'],
   normalisePnKc: true,
   normaliseKcMbon: true,
   odorRate: 0.10, odorKick: 12, danRate: 0.15, danKick: 12,
@@ -48,7 +50,7 @@ export class MBSim {
   constructor(readonly c: Circuit, readonly p: SimParams = DEFAULT_PARAMS, seed = 1) {
     this.n = c.n; this.rng = mulberry32(seed);
     this.kcRange = c.range('Kenyon_Cell'); this.mbonRange = c.range('MBON'); this.danRange = c.range('DAN'); this.pnRange = c.range('ALPN');
-    const apl = c.range('APL')[0];
+    const apl = c.range('APL')[0]; const avoidSet = new Set(p.avoidTypes);
     const inR = (i: number, r: [number, number]) => i >= r[0] && i < r[1];
     const { indptr, indices, weights, sign } = c;
     const m = c.m;
@@ -74,7 +76,7 @@ export class MBSim {
       else if (inR(i, this.pnRange) && inR(j, this.pnRange)) this.w[k] *= p.gain.pnPn;
       else if (inR(i, this.kcRange) && inR(j, this.kcRange)) this.w[k] *= p.gain.kcKc;
       else if (i === apl && inR(j, this.kcRange)) this.w[k] *= p.gain.aplKc;
-      else if (inR(i, this.kcRange) && inR(j, this.mbonRange)) this.w[k] *= p.gain.kcMbon;
+      else if (inR(i, this.kcRange) && inR(j, this.mbonRange)) this.w[k] *= p.gain.kcMbon * (avoidSet.has(c.typeName[j]) ? p.gain.kcMbonAvoid : 1);
     }
     // plastic KC→MBON edges
     this.plasticIdx = new Int32Array(m).fill(-1);
