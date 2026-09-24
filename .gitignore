@@ -1,0 +1,7 @@
+.venv/
+node_modules/
+data/raw/
+data/derived/
+dist/
+.DS_Store
+.env
