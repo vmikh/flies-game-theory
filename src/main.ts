@@ -38,12 +38,12 @@ app.innerHTML = `
   <button id="restart">Restart with these parameters</button>
 </aside>
 <main class="layout">
-  <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-replay">↻ Replay</button><button id="cap-back">← Back (Esc)</button></div></div></section>
+  <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back">← Back <span class="muted">Esc</span></button></div></div></section>
   <aside class="side">
     <section id="board"><h2>Ranking</h2><div id="lb"></div></section>
     <section id="trust"><h2>Trust</h2><div class="sub">row: how the fly feels about each opponent · green approach, red avoid</div><svg id="tm"></svg></section>
     <section id="timeline"><h2>Cooperation</h2><div class="sub">share of cooperative choices, last 200 decisions</div><svg id="tl"></svg></section>
-    <section id="log"><h2>Last games</h2><div id="lg"></div></section>
+    <section id="log"><h2>Last games</h2><div class="sub">green cooperated, red defected · payoff A/B</div><div id="lg"></div></section>
   </aside>
 </main>`;
 const status = document.getElementById('status')!;
@@ -95,17 +95,25 @@ async function startGame() {
 document.getElementById('restart')!.onclick = () => void startGame();
 const capEl = document.getElementById('caption')!, capText = document.getElementById('cap-text')!;
 function caption(b: number) {
-  const s = lastSnap; if (!s) return; const f = s.flies[b]; const m = s.movies[b];
+  const s = lastSnap; if (!s) return; const f = s.flies[b]; const m = s.movies[b]; const st = f.strategy; const les = LESIONS.find((x) => x.id === f.lesion);
+  const pct = (v: number | null) => (v === null ? '—' : Math.round(100 * v) + '%');
   const rec = [...s.last].reverse().find((r) => r.a === b || r.b === b);
-  const st = f.strategy; const pct = (v: number | null) => (v === null ? '?' : Math.round(100 * v) + '%');
-  let html = `<b>${f.name}</b>${f.lesion !== 'none' ? ` <span class="lesion">[${LESIONS.find((x) => x.id === f.lesion)?.label}: ${LESIONS.find((x) => x.id === f.lesion)?.hint}]</span>` : ''} · ${f.money.toFixed(0)} money · ${f.games} games · cooperates ${f.games ? Math.round(100 * f.coops / f.games) : 0}% · <b>${st.label}</b> <span class="muted">(first meeting ${pct(st.trust)}, after C ${pct(st.reciprocity)}, after D ${pct(st.forgiveness)})</span>`;
-  if (rec) { const me = rec.a === b; const opp = me ? rec.b : rec.a; const myC = me ? rec.ca : rec.cb, oppC = me ? rec.cb : rec.ca, pay = me ? rec.pa : rec.pb, sc = me ? rec.scoreA : rec.scoreB, pc = me ? rec.pcA : rec.pcB;
-    html += `<br>Last game, round ${rec.round}: smells <b>F${opp + 1}</b> → approach−avoid <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b> → cooperates with p=${pc.toFixed(2)} → <b>${myC ? 'COOPERATES' : 'DEFECTS'}</b>; F${opp + 1} ${oppC ? 'cooperates' : 'defects'} → payoff <b>${pay}</b> → ${pay >= 3 ? '<span class="pam">reward (PAM dopamine)</span>' : '<span class="ppl1">punishment (PPL1 dopamine)</span>'}`; }
-  if (m && !m.decision) html += `<br><span class="muted">activity movie is recorded at 1× and 2× only</span>`;
+  let html = `<div class="cap-head"><span class="cap-name">${f.name}${f.lesion !== 'none' ? ` <span class="tag lesion">${les?.label}</span>` : ''}</span><span class="cap-strat">${stratGlyph(st)} ${st.label}</span></div>
+    <div class="cap-stats">${f.money.toFixed(0)} money · ${f.games} games · cooperates ${f.games ? Math.round(100 * f.coops / f.games) : 0}%</div>
+    <div class="cap-stats muted">first meeting ${pct(st.trust)} · after C ${pct(st.reciprocity)} · after D ${pct(st.forgiveness)}</div>`;
+  if (rec) {
+    const me = rec.a === b; const opp = me ? rec.b : rec.a; const myC = me ? rec.ca : rec.cb, oppC = me ? rec.cb : rec.ca, pay = me ? rec.pa : rec.pb, sc = me ? rec.scoreA : rec.scoreB, pc = me ? rec.pcA : rec.pcB;
+    const row = (k: string, v: string) => `<div class="cap-row"><span class="cap-k">${k}</span><span class="cap-v">${v}</span></div>`;
+    html += `<div class="cap-title">Last game · R${rec.round} vs F${opp + 1}</div>
+      ${row('smells F' + (opp + 1), `approach − avoid <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b>`)}
+      ${row('decides', `<b class="${myC ? 'c' : 'd'}">${myC ? 'cooperates' : 'defects'}</b> <span class="muted">p = ${pc.toFixed(2)}</span>`)}
+      ${row('F' + (opp + 1), `<b class="${oppC ? 'c' : 'd'}">${oppC ? 'cooperates' : 'defects'}</b>`)}
+      ${row('payoff', `<b>${pay}</b> → ${pay >= 3 ? '<span class="pam">reward · PAM dopamine</span>' : '<span class="ppl1">punishment · PPL1 dopamine</span>'}`)}`;
+  }
+  if (m && !m.decision) html += `<div class="cap-note muted">activity replay is recorded at 1× and 2× only</div>`;
   capText.innerHTML = html;
 }
 arena.onFocus = (b) => { capEl.hidden = b === null; if (b !== null) caption(b); };
-document.getElementById('cap-replay')!.onclick = () => { if (arena.focused !== null) arena.replay(arena.focused); };
 document.getElementById('cap-back')!.onclick = () => arena.focus(null);
 let playing = false, budget = Infinity, lastRender = 0;
 await startGame();
@@ -153,7 +161,7 @@ function render(s: Snapshot) {
     .attr('d', d3.line<{ round: number; coop: number }>().x((d) => x(d.round)).y((d) => y(d.coop)));
   tl.selectAll('g.ax').data([0]).join('g').attr('class', 'ax').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(6) as any);
   tl.selectAll('g.ay').data([0]).join('g').attr('class', 'ay').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('.0%')) as any);
-  const ch = (c: boolean, p: number) => `<span class="${c ? 'c' : 'd'}" title="p(cooperate) = ${p.toFixed(2)}">${c ? 'C' : 'D'}</span>`;
+  const fly = (id: number, c: boolean, p: number) => `<span class="${c ? 'c' : 'd'}" title="${c ? 'cooperated' : 'defected'} · p(cooperate) = ${p.toFixed(2)}">F${id + 1}</span>`;
   document.getElementById('lg')!.innerHTML = s.last.slice().reverse().map((g) =>
-    `<div class="lrow"><span class="muted">r${g.round}</span><span>F${g.a + 1} ${ch(g.ca, g.pcA)}</span><span class="muted">vs</span><span>F${g.b + 1} ${ch(g.cb, g.pcB)}</span><span class="muted">→</span><span>${g.pa} / ${g.pb}</span></div>`).join('');
+    `<div class="lrow"><span class="muted">R${g.round}</span><span>${fly(g.a, g.ca, g.pcA)} vs ${fly(g.b, g.cb, g.pcB)}</span><span class="muted">→</span><span>${g.pa}/${g.pb}</span></div>`).join('');
 }
