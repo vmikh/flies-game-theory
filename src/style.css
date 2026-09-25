@@ -87,7 +87,6 @@ html, body { height: 100%; min-width: 1350px; min-height: 700px; overflow: auto;
 .cap-result { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--mp-05) var(--mp-2); margin-top: var(--mp-2); padding: var(--mp-2) var(--mp-25); border-radius: var(--rd-2); background: var(--c-surface-2); font-size: var(--fs-meta); }
 .cap-result > span:first-child { color: var(--c-fg-4); } .cap-result strong { margin-left: var(--mp-1); color: var(--c-fg); font-variant-numeric: tabular-nums; }
 .cap-brain { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px var(--mp-2); margin-top: var(--mp-2); color: var(--c-fg-4); font-size: var(--fs-meta); }
-.cap-brain > span:first-child { grid-column: 1 / -1; color: var(--c-fg-3); font-weight: var(--fw-semibold); }
 .cap-brain b { color: var(--c-fg-2); font-variant-numeric: tabular-nums; }
 .cap-btns { margin-top: var(--mp-4); padding-top: var(--mp-4); border-top: 1px solid var(--c-line); }
 #caption .tag.lesion { color: var(--c-danger); font-size: var(--fs-meta); font-weight: var(--fw-medium); line-height: var(--lh-ui); }
@@ -97,6 +96,15 @@ html, body { height: 100%; min-width: 1350px; min-height: 700px; overflow: auto;
 .modal p { margin: var(--mp-15) 0; } .modal ul, .modal ol { margin: var(--mp-1) 0; padding-left: 20px; } .modal li { margin: var(--mp-1) 0; }
 .modal a { color: var(--c-accent); }
 .muted { color: var(--c-fg-4); }
+.about-details { margin-top: var(--mp-4); }
+.about-details summary { display: inline-block; list-style: none; color: var(--c-accent); cursor: pointer;
+  text-decoration-line: underline; text-decoration-style: dashed; text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--c-accent) 45%, transparent); text-underline-offset: 4px; }
+.about-details summary::marker { content: ''; }
+.about-details summary::-webkit-details-marker { display: none; }
+.about-details summary:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 4px; }
+.about-details-content { display: flow-root; overflow: hidden; padding-top: var(--mp-2); }
+#about-body .about-details + p.muted, #mobile-about-body .about-details + p.muted { margin-top: var(--mp-5); }
 
 /* Compact screens show the project and a single interactive connectome brain. */
 @media (max-width: 1349.98px) {
@@ -112,10 +120,7 @@ html, body { height: 100%; min-width: 1350px; min-height: 700px; overflow: auto;
   #mobile-brain canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
   #mobile-brain canvas:active { cursor: grabbing; }
   #mobile-brain .arena-label { display: none; }
-  .mobile-lang { position: absolute; top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); z-index: 4;
-    min-width: 54px; height: 38px; padding: 0 14px; border: 1px solid var(--c-line-2); border-radius: var(--rd-full);
-    background: rgba(23,26,33,.8); color: var(--c-fg); font-weight: var(--fw-semibold); backdrop-filter: blur(10px); cursor: pointer; }
-  .mobile-lang:hover { background: var(--c-surface-3); }
+  .mobile-lang { position: absolute; top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); z-index: 4; }
   .mobile-hero-meta { position: absolute; right: 24px; bottom: 22px; left: 24px; z-index: 3;
     display: flex; align-items: center; justify-content: space-between; gap: 20px; color: var(--c-fg-2); font-size: var(--fs-sm); pointer-events: none; }
   .mobile-live { display: inline-flex; align-items: center; gap: 4px; height: 20px; }

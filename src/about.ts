@@ -2,50 +2,82 @@ import type { Lang } from './i18n.ts';
 
 const L = {
   malecns: 'https://male-cns.janelia.org/', google: 'https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/',
-  shiu: 'https://www.nature.com/articles/s41586-024-07763-9', aso: 'https://elifesciences.org/articles/04577', three: 'https://threejs.org/', d3: 'https://d3js.org/',
+  shiu: 'https://www.nature.com/articles/s41586-024-07763-9', aso: 'https://elifesciences.org/articles/04577',
   repo: 'https://github.com/vmikh/flies-game-theory',
 };
-const a = (href: string, text: string) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+const a = (href: string, label: string) => `<a href="${href}" target="_blank" rel="noopener">${label}</a>`;
 
 export function aboutHtml(lang: Lang): string {
   if (lang === 'ru') return `
-<p>Восемь мух играют в повторяющуюся дилемму заключённого. У каждой смоделирован фрагмент грибовидного тела по коннектому дрозофилы. Его обучение задано упрощённым правилом дофаминовой пластичности.</p>
-<h3>Как это устроено</h3>
-<p>Мозг мухи умеет одно: связать запах с наградой или наказанием и потом тянуться к нему или избегать. На этом всё и построено.</p>
-<p><b>Соперник как запах.</b> У каждой мухи свой набор обонятельных входных нейронов. При встрече A с B в мозге A активируется набор B, как от настоящего запаха. Наборы не пересекаются.</p>
-<p><b>Решение.</b> Сигнал идёт через грибовидное тело к выходным нейронам, которым модель назначает тягу или избегание. Их разница задаёт вероятность сотрудничества. Без опыта и при нулевом начальном доверии она близка к 50%.</p>
-<p><b>Слухи.</b> За каждое действие, увиденное в чужой партии, наблюдатель получает сигнал по запаху игрока: награду за сотрудничество, наказание за предательство. Свой опыт обучает по полученной выплате. При восьми мухах за раунд бывает до шести наблюдений на один собственный опыт.</p>
-<p><b>Выбывание.</b> По умолчанию каждая партия стоит два очка. Муха, у которой после выплаты не осталось очков, выбывает; дальше процент сотрудничества считается среди оставшихся игроков.</p>
-<h3>Под капотом</h3>
+<p>Восемь виртуальных мух раз за разом играют в дилемму заключённого. В каждой партии обе решают, сотрудничать или предать. За разные сочетания решений они получают разное число очков. Со временем их поведение меняется.</p>
+<h3>Как мухи учатся</h3>
+<p>Чтобы муха различала соперников, каждому дали свой условный «запах». При встрече модель подаёт соответствующий сигнал на обонятельные нейроны мухи. Затем он проходит через грибовидное тело. В мозге дрозофилы этот отдел помогает связывать запахи с наградой и наказанием.</p>
+<p>Модель сравнивает сигналы приближения и избегания. От них зависит <b>вероятность сотрудничества</b>. Если муха ничего не знает о сопернике и начальное доверие равно нулю, шанс составляет около 50%.</p>
+<p>После партии муха учится на полученных очках. Если её предали, шанс сотрудничать с другой мухой тоже может немного снизиться: сигналы разных соперников иногда задействуют одни и те же нейроны.</p>
+<p>Муха наблюдает и за чужими партиями: сотрудничество даёт положительный сигнал, а предательство даёт отрицательный. Так мнение о сопернике может появиться ещё до личной встречи. Силу влияния чужого опыта и скорость забывания можно менять в параметрах.</p>
+<h3>Как читать результаты</h3>
+<p>По умолчанию каждая партия стоит мухе два очка. Когда очки заканчиваются, муха выбывает. Состав игроков со временем меняется, и это тоже влияет на результат.</p>
+<p>В полной версии процент вверху показывает долю сотрудничества <b>среди всех решений с начала игры</b>, в том числе решений выбывших мух. График показывает <b>последние 200 решений</b>. Даже с одинаковыми настройками результаты могут различаться. По одному запуску нельзя судить, значима ли разница между настройками. Для этого проведите серию независимых прогонов каждого варианта и сравните средний результат и разброс.</p>
+<h3>На чём основана модель</h3>
+<p>Схема нейронных связей взята из ${a(L.malecns, 'коннектома мозга дрозофилы Male CNS v1.0')}. Правила игры, перевод очков в сигналы обучения и перевод активности мозга в решение заданы авторами модели.</p>
+<details class="about-details"><summary>Технические подробности и источники</summary><div class="about-details-content">
 <ul>
-<li><b>Проводка</b>: грибовидное тело правого полушария из коннектома ${a(L.malecns, 'Male CNS v1.0')} (HHMI Janelia FlyEM, Google Research, Кембридж, MRC LMB; CC-BY 4.0):
-2 609 нейронов, 118 773 связи от 3 синапсов: проекционные нейроны, 2 045 клеток Кеньона, 49 MBON, 170 дофаминовых нейронов, APL, DPM. Знаки нейромедиаторов из предсказаний датасета.
-${a(L.google, 'Анонс Google Research')}.</li>
-<li><b>Нейроны</b>: leaky integrate-and-fire, шаг 1 мс, 0.275 мВ на синапс, параметры по ${a(L.shiu, 'Shiu et al., Nature 2024')}. Каждая муха живёт в своём Web Worker; 400 мс мозгового времени считаются за ~8 мс.</li>
-<li><b>Кодирование запахов</b>: каждому сопернику достаётся свой непересекающийся набор обонятельных входов. Внутренние ответы клеток Кеньона могут перекрываться, поэтому память об одном сопернике способна повлиять на отношение к другому.</li>
-<li><b>Обучение</b>: память хранится в связях между клетками Кеньона и выходными нейронами MBON. При совпадении запаха и дофаминового сигнала связи к соответствующим MBON ослабевают. Модель делит MBON на группы по тому, какой вход из PPL1 или PAM преобладает в коннектоме; это упрощение известной организации грибовидного тела (${a(L.aso, 'Aso et al., eLife 2014')}).</li>
-<li><b>Решение</b>: перед игрой мы запоминаем, как каждый мозг отвечает на каждый запах без всякого опыта. Дальше сравниваем ответ группы приближения и группы избегания с этим начальным: незнакомый запах даёт ноль и решение как монетка, полностью наказанный запах даёт избегание, полностью награждённый притяжение.</li>
-</ul>
-<p class="muted">Это модель, ограниченная частью коннектома, а не запись поведения живой мухи. Проводка и числа синапсов взяты из данных; знаки медиаторов предсказаны в датасете. Правило обучения, разделение MBON на две группы, считывание решения, перевод выплат и наблюдений в дофамин и правило выбывания заданы моделью. Один прогон не даёт устойчивой оценки: сравнивайте результаты нескольких запусков.</p>
+<li>Используется часть грибовидного тела правого полушария: 2 609 нейронов и 118 773 связей не менее чем с тремя синапсами. Среди них 2 045 клеток Кеньона, 49 выходных и 170 дофаминовых нейронов, а также входные нейроны, APL и DPM. Данные подготовлены HHMI Janelia FlyEM, Google Research, Кембриджем и MRC LMB и доступны по лицензии CC-BY 4.0. См. ${a(L.google, 'обзор Google Research')}. Знаки нейромедиаторов в датасете предсказаны.</li>
+<li>Активность нейронов рассчитывается с шагом 1 мс по упрощённой импульсной модели. Параметры взяты из ${a(L.shiu, 'Shiu et al., Nature 2024')}. Каждый мозг работает отдельно.</li>
+<li>У каждого соперника свой набор входных нейронов. Эти наборы не пересекаются, но дальше сигнал может пройти через одни и те же клетки грибовидного тела. Поэтому обучение на одном сопернике способно немного изменить отношение к другому.</li>
+<li>Память меняет связи от клеток Кеньона к выходным нейронам. Деление этих нейронов на две группы по входам PPL1 и PAM и правило изменения связей упрощают устройство грибовидного тела, описанное в ${a(L.aso, 'Aso et al., eLife 2014')}. Ответ каждого мозга до обучения служит точкой отсчёта для будущих решений.</li>
+</ul></div></details>
 <p class="muted">Исходный код: ${a(L.repo, 'github.com/vmikh/flies-game-theory')}</p>`;
   return `
-<p>Eight flies play an iterated prisoner's dilemma. Each has a simulated mushroom body circuit built from part of a fruit fly connectome. It learns through a simplified dopamine plasticity rule.</p>
-<h3>How it works</h3>
-<p>A fly's brain can do one thing: link an odour with reward or punishment, then approach or avoid it. Everything is built on that.</p>
-<p><b>Opponent as odour.</b> Each fly has its own set of olfactory input neurons. When A meets B, B's set is activated in A's brain, as a real odour would. The sets do not overlap.</p>
-<p><b>Decision.</b> The signal runs through the mushroom body to output neurons assigned approach or avoidance by the model. Their difference sets the probability of cooperation. With no experience and zero initial trust it is close to 50%.</p>
-<p><b>Gossip.</b> For each observed action in another game, a bystander receives a signal associated with that player's odour: reward for cooperation, punishment for defection. A fly's own game teaches from its payoff. With eight flies, a round can deliver six observations for one direct experience.</p>
-<p><b>Dropping out.</b> By default, each game costs two points. A fly with no points after the payoff leaves; subsequent cooperation rates count the remaining players.</p>
-<h3>Under the hood</h3>
+<p>Eight virtual flies play the prisoner's dilemma round after round. In each game, both choose whether to cooperate or defect. Different pairs of choices earn different numbers of points. Their behaviour changes as they play.</p>
+<h3>How the flies learn</h3>
+<p>To help a fly tell opponents apart, the model gives each one a distinct, simulated “odour”. When two flies meet, the model sends the corresponding signal to the olfactory neurons. It then passes through the mushroom body. In real fruit flies, this area helps link odours with reward and punishment.</p>
+<p>The model compares signals for approaching and avoiding an opponent. These set the <b>chance of cooperation</b>. With no information about an opponent and zero initial trust, the chance is about 50%.</p>
+<p>After a game, a fly learns from the points it earned. If another fly defects against it, its chance of cooperating with a different fly may also drop a little: the two opponents' signals can activate some of the same neurons.</p>
+<p>The fly also watches other games: cooperation gives it a positive signal, defection a negative one. It may have an opinion about an opponent before they have met. The effect of watching others and the rate of forgetting can be changed in the settings.</p>
+<h3>Reading the results</h3>
+<p>By default, each game costs a fly two points. A fly leaves when its points run out. The mix of players changes over time, and that affects the results.</p>
+<p>In the full version, the percentage at the top shows the share of cooperative choices <b>since the start of the game</b>, including choices made by flies that later left. The chart shows the <b>last 200 choices</b>. Results can differ even with the same settings. A single run cannot tell you whether a difference between settings is statistically meaningful. Run each set of settings several times and compare both the average and the spread of the results.</p>
+<h3>Where the model comes from</h3>
+<p>The neural wiring comes from the ${a(L.malecns, 'Male CNS v1.0 fruit fly connectome')}. The game rules and the ways points become learning signals and brain activity becomes a choice were set by the model's authors.</p>
+<details class="about-details"><summary>Technical details and sources</summary><div class="about-details-content">
 <ul>
-<li><b>Wiring</b>: the mushroom body of the right hemisphere from the ${a(L.malecns, 'Male CNS v1.0 connectome')} (HHMI Janelia FlyEM, Google Research, Cambridge, MRC LMB; CC-BY 4.0):
-2 609 neurons, 118 773 connections with ≥3 synapses: projection neurons, 2 045 Kenyon cells, 49 MBONs, 170 dopaminergic neurons, APL, DPM. Neurotransmitter signs from the dataset's predictions.
-${a(L.google, 'Google Research announcement')}.</li>
-<li><b>Neurons</b>: leaky integrate-and-fire, 1 ms steps, 0.275 mV per synapse, parameters after ${a(L.shiu, 'Shiu et al., Nature 2024')}. Each fly runs in its own Web Worker; 400 ms of brain time takes ~8 ms.</li>
-<li><b>Odour coding</b>: each opponent gets a disjoint set of olfactory inputs. Internal Kenyon cell responses can still overlap, so learning about one opponent can affect the response to another.</li>
-<li><b>Learning</b>: memory lives in connections between Kenyon cells and output neurons (MBONs). When an odour coincides with a dopamine signal, connections to the corresponding MBONs weaken. The model assigns each MBON to a group according to whether PPL1 or PAM input dominates in the connectome; this simplifies the known organization of the mushroom body (${a(L.aso, 'Aso et al., eLife 2014')}).</li>
-<li><b>Decision</b>: before the game we record how each brain responds to each odour with no experience at all. From then on we compare the response of the approach group and the avoidance group with that baseline: an unfamiliar odour gives zero and a coin-flip decision, a fully punished odour gives avoidance, a fully rewarded one attraction.</li>
-</ul>
-<p class="muted">This model is constrained by part of the connectome; it is not a recording of a living fly's behaviour. Wiring and synapse counts come from data; transmitter signs are dataset predictions. The learning rule, division of MBONs into two groups, decision readout, dopamine mapping for payoffs and observations, and elimination rule are modelling choices. One run is not a stable estimate: compare results across several runs.</p>
+<li>The circuit is part of the right mushroom body: 2,609 neurons and 118,773 connections with at least three synapses. It contains 2,045 Kenyon cells, 49 output neurons, 170 dopamine neurons, input neurons, APL and DPM. The data was prepared by HHMI Janelia FlyEM, Google Research, Cambridge and MRC LMB and is available under CC-BY 4.0. See the ${a(L.google, 'Google Research overview')}. Neurotransmitter signs in the dataset are predictions.</li>
+<li>Neural activity is calculated in 1 ms steps with a simplified spiking model. Parameters come from ${a(L.shiu, 'Shiu et al., Nature 2024')}. Each brain runs separately.</li>
+<li>Each opponent has its own set of input neurons. These sets do not overlap, but the signals can pass through some of the same cells inside the mushroom body. Learning about one opponent can therefore slightly change the response to another.</li>
+<li>Memory changes connections from Kenyon cells to output neurons. Grouping these neurons by PPL1 and PAM input, along with the rule for changing connections, simplifies the mushroom body organisation described by ${a(L.aso, 'Aso et al., eLife 2014')}. Each brain's response before learning serves as a baseline for later choices.</li>
+</ul></div></details>
 <p class="muted">Source code: ${a(L.repo, 'github.com/vmikh/flies-game-theory')}</p>`;
+}
+
+export function renderAbout(container: HTMLElement, lang: Lang): void {
+  const wasOpen = container.querySelector<HTMLDetailsElement>('.about-details')?.open ?? false;
+  container.innerHTML = aboutHtml(lang);
+  const details = container.querySelector<HTMLDetailsElement>('.about-details')!;
+  const summary = details.querySelector('summary')!;
+  const content = details.querySelector<HTMLElement>('.about-details-content')!;
+  details.open = wasOpen;
+  let expanded = wasOpen;
+  let animation: Animation | null = null;
+
+  summary.addEventListener('click', (event) => {
+    event.preventDefault();
+    const currentHeight = details.open ? content.getBoundingClientRect().height : 0;
+    animation?.cancel();
+    expanded = !expanded;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      details.open = expanded;
+      return;
+    }
+    if (expanded) details.open = true;
+    const targetHeight = expanded ? content.scrollHeight : 0;
+    animation = content.animate(
+      [{ height: `${currentHeight}px`, opacity: currentHeight ? 1 : 0 }, { height: `${targetHeight}px`, opacity: expanded ? 1 : 0 }],
+      { duration: 280, easing: 'ease-in-out' },
+    );
+    animation.onfinish = () => {
+      if (!expanded) details.open = false;
+      animation = null;
+    };
+  });
 }

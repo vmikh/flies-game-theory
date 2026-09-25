@@ -29,7 +29,16 @@ Headless checks (Node 24): `node --experimental-transform-types scripts/run_game
 - `trustBias` shifts the decision probability on **every** game, including rematches. A negative setting changes more than the first meeting and can compound losses from the ante.
 - At `forgetPerRound = 0`, KC→MBON plastic factors can only decrease, down to `plasticMin = 0.05`. Repeated positive and negative signals can depress both readout pathways and return the decision score toward zero. A rate near 50% can therefore reflect saturation, rather than absence of learning.
 - The connectome supplies circuit structure and synapse counts, not a measured prisoner's-dilemma policy. Payoff-to-dopamine mapping, social learning, the MBON readout, and bankruptcy are model assumptions. The default 5/3/1/0 payoffs with ante 2 make mutual defection lose one point per fly per game; early distrust can lead to elimination.
-- The class-shuffled circuit is an approximate wiring control: it preserves source neurons, synapse counts per sampled edge and target classes, but redraws targets with replacement. Exact target degrees and the number of distinct edges can change.
+
+## Hidden setting: shuffled-wiring control
+
+The site always runs the real connectome. Visitors cannot change the wiring: the switch is in the advanced panel, which appears only when `?advanced` is added to the URL (Parameters → Advanced → Wiring → "shuffled (control)"). While it is active, the status line says "shuffled wiring".
+
+What it is for: a check of whether the specific wiring of the real mushroom body matters, or whether any circuit with the same neuron classes would behave the same. Run the same seeds with the real and the shuffled wiring and compare learning and cooperation.
+
+How the shuffle works: an approximate control. It keeps every neuron, each edge's source neuron, synapse count and target class, but redraws targets with replacement. Exact target degrees and the number of distinct edges can change. All flies in one game get the same shuffled circuit, drawn from the game seed.
+
+Known limitation: only the brains get the shuffled circuit. The game still labels each MBON as approach or avoid from the dopamine wiring of the real connectome. The shuffle also redraws DAN → MBON edges, so in the shuffled brain dopamine reaches different MBONs than the labels assume. On seeds 1–5, 13–18 of the 36 labelled MBONs change sign and 2–7 lose their label. A worse result with shuffled wiring therefore mixes two causes: different wiring, and a readout that no longer matches where learning happens. Do not read it as proof that the real wiring is special.
 
 ## Deploy
 

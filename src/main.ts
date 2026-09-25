@@ -6,7 +6,7 @@ import type { ShuffleMode } from './shuffle.ts';
 import { Arena } from './arena.ts';
 import { LESIONS, type Lesion } from './backend.ts';
 import { t, getLang, setLang, onLang, strategyLabel, lesionLabel, lesionHint, type Key } from './i18n.ts';
-import { aboutHtml } from './about.ts';
+import { renderAbout } from './about.ts';
 import { initAnalytics, track } from './analytics.ts';
 
 initAnalytics();
@@ -35,7 +35,7 @@ app.innerHTML = `
   <div class="field"><label class="label"><span data-i18n="gossip"></span><span class="hint" data-i18n-html="gossipHint"></span></label><input class="input" id="p-observeGain" type="number" step="0.05" min="0" max="2"></div>
   <div class="field"><label class="label"><span data-i18n="forgetting"></span><span class="hint" data-i18n-html="forgettingHint"></span></label><input class="input" id="p-forgetPerRound" type="number" step="0.01" min="0" max="1"></div>
   <div class="field"><label class="label"><span data-i18n="trustBias"></span><span class="hint" data-i18n-html="trustBiasHint"></span></label><input class="input" id="p-trustBias" type="number" step="0.05"></div>
-  <div class="field"><label class="label"><span data-i18n="payoffs"></span><span class="hint" data-i18n="payoffsHint"></span></label><select class="select" id="p-payoffPreset"><option value="5,3,1,0" data-i18n="presetClassic"></option><option value="5,4,1,0" data-i18n="presetGenerous"></option><option value="8,3,1,0" data-i18n="presetHarsh"></option></select></div>
+  <div class="field"><label class="label"><span data-i18n="payoffs"></span><span class="hint" data-i18n="payoffsHint"></span></label><select class="select" id="p-payoffPreset"><option value="5,3,1,0" data-i18n="presetClassic"></option><option value="5,4,1,0" data-i18n="presetGenerous"></option><option value="5,3,1,-1" data-i18n="presetHarsh"></option></select></div>
   <h2 class="section-h" data-i18n="lesions"></h2>
   <div id="lesions">${Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => `<div class="field compact"><label class="label">F${i + 1}</label><select class="select select-sm" id="p-lesion-${i}">${LESIONS.map((l) => `<option value="${l.id}"></option>`).join('')}</select></div>`).join('')}</div>
   <div class="legend"><div class="muted" data-i18n="mutationsHint"></div><dl id="lesion-legend"></dl></div>
@@ -100,7 +100,7 @@ function applyStatic() {
   setPlayLabel();
   document.querySelectorAll<HTMLSelectElement>('#lesions select').forEach((sel) => Array.from(sel.options).forEach((o) => { o.textContent = lesionLabel(o.value); o.title = lesionHint(o.value); }));
   document.getElementById('lesion-legend')!.innerHTML = LESIONS.filter((l) => l.id !== 'none').map((l) => `<dt>${lesionLabel(l.id)}</dt><dd>${lesionHint(l.id)}</dd>`).join('');
-  document.getElementById('about-body')!.innerHTML = aboutHtml(getLang());
+  renderAbout(document.getElementById('about-body')!, getLang());
   document.getElementById('lang')!.textContent = getLang() === 'ru' ? 'EN' : 'RU';   // the link names the other language
 }
 function setPlayLabel() { playBtn.textContent = playing ? t('pause') : t('play'); }
@@ -198,7 +198,7 @@ function caption(b: number) {
         <div><span>F${opp + 1}</span><strong class="${oppC ? 'coop' : 'defect'}">${oppC ? t('cooperated') : t('defected')}</strong></div>
       </div>
       <div class="cap-result"><span>${t('payoff')} <strong>${pay > 0 ? '+' : ''}${pay}</strong></span><span class="${game.payoffValence(pay) > 0 ? 'pam' : 'ppl1'}">${game.payoffValence(pay) > 0 ? t('reward') : t('punishment')}</span></div>
-      <div class="cap-brain"><span>${t('brainResponse')}</span><span>${t('approachMinusAvoid')} <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b></span><span>${t('coopChance')} <b>${Math.round(pc * 100)}%</b></span></div>
+      <div class="cap-brain"><span>${t('approachMinusAvoid')} <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b></span><span>${t('coopChance')} <b>${Math.round(pc * 100)}%</b></span></div>
     </section>`;
   }
   capText.innerHTML = html;

@@ -1,14 +1,17 @@
 import { Circuit } from './circuit.ts';
 import { Arena } from './arena.ts';
-import { aboutHtml } from './about.ts';
+import { renderAbout } from './about.ts';
 import { getLang, onLang, setLang, t } from './i18n.ts';
+import { initAnalytics, track } from './analytics.ts';
+
+initAnalytics();
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
 <div class="mobile-page">
   <section class="mobile-hero" aria-label="">
     <div id="mobile-brain"></div>
-    <button id="mobile-lang" class="mobile-lang" type="button" aria-label="Switch language"></button>
+    <button id="mobile-lang" class="btn btn-link mobile-lang" type="button" aria-label="Switch language"></button>
     <div class="mobile-hero-meta">
       <span id="mobile-drag"></span>
       <span class="mobile-live" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -39,11 +42,11 @@ function renderText() {
   document.getElementById('mobile-title')!.textContent = t('title');
   document.getElementById('mobile-desktop-note')!.textContent = t('mobileDesktopNote');
   document.getElementById('mobile-about-title')!.textContent = t('aboutTitle');
-  document.getElementById('mobile-about-body')!.innerHTML = aboutHtml(getLang());
+  renderAbout(document.getElementById('mobile-about-body')!, getLang());
   if (!loading.hidden) loading.textContent = t('mobileBrainLoading');
 }
 
-langButton.onclick = () => setLang(getLang() === 'ru' ? 'en' : 'ru');
+langButton.onclick = () => { const lang = getLang() === 'ru' ? 'en' : 'ru'; setLang(lang); track('language_changed', { language: lang }); };
 onLang(renderText);
 renderText();
 
