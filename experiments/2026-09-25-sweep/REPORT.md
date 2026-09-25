@@ -1,197 +1,202 @@
-# Свип параметров: мухи и дилемма заключённого
+# Parameter sweep: flies and the prisoner's dilemma
 
-25 сентября 2026. 1400 игр: 14 наборов настроек × 100 сидов × 35 раундов.
+25 September 2026. 1,400 games: 14 settings × 100 seeds × 35 rounds.
 
-> Наборы «жёсткий мир» и «враждебный мир» посчитаны на пресете 6/3/1/−1, который сейчас стоит на сайте (коммит `6235036`). Результаты на прежнем пресете 5/3/1/−1 сохранены для сравнения в `data/old-harsh-5-3-1-m1/`.
+> The harsh-world and hostile-world sets use the 6/3/1/−1 preset that the site now ships (commit `6235036`). Their results on the earlier 5/3/1/−1 preset are kept for comparison in `data/old-harsh-5-3-1-m1/`.
 
-## За 30 секунд
+## In 30 seconds
 
-**Что выгодно мухе и что выгодно миру: 1400 игр**
+**What pays for one fly, and what pays for the world**
 
-**Миру выгодно, когда сотрудничают все.** Богатство мира растёт вместе с сотрудничеством: с 22 монет на муху у осторожных до 57.5 у доверчивых. «Дружелюбный мир» собрал рекордные 648 монет на восьмерых.
-*Подкрепляют прогоны: «доверие +0.5», «дружелюбный мир», «доверие −0.5», «враждебный мир».*
+**The world does best when everyone cooperates.** Wealth rises with cooperation, from 22 coins per fly in the wary worlds to 57.5 in the trusting one. The friendly world set the record with 648 coins across eight flies.
+*Supported by: trust +0.5, friendly world, trust −0.5, hostile world.*
 
-**Одной мухе выгодно предавать, пока её не помнят.** Там, где памяти мало (без обучения, по умолчанию, сильные слухи), чем чаще муха предаёт, тем она богаче. Турнир выиграл мутант, который предаёт чаще всех.
-*Подкрепляют прогоны: «без дофамина», «по умолчанию», «сильные слухи», «турнир мутантов».*
+**A single fly does best by defecting, as long as nobody remembers.** Where memory is weak, the more a fly defects, the richer it ends. That holds without learning, at the default settings and with strong gossip. The harsh preset makes it stronger. A fly that always cooperates loses 6.6 coins against the average there, 4.3 at the defaults. The mutant tournament was won by the fly that defects most.
+*Supported by: no dopamine, default, strong gossip, harsh world, mutant tournament.*
 
-**Но если мухи помнят обиды, лично выгоднее «око за око».** Без слухов строгое «око за око» оказывается на 4–8 монет богаче среднего, а предательство перестаёт окупаться.
-*Подкрепляют прогоны: «без слухов», «чистая память».*
+**But when flies remember grudges, strict tit-for-tat pays best.** Without gossip, strict tit-for-tat ends 4 to 8 coins above the average, and defecting no longer pays.
+*Supported by: no gossip, pure memory.*
 
-**Итог:** память превращает сотрудничество из жертвы в выгодную стратегию.
+**Bottom line.** Memory turns cooperation from a sacrifice into a winning strategy.
 
-## Как проводили
+## How it was run
 
-- **Движок.** Та же модель, что на сайте (`src/game.ts`, `src/sim.ts`), но в Node без браузера (`LocalFly`), 8 процессов параллельно.
-- **Объём.** 14 наборов × 100 сидов (1–100) × 35 раундов. 35 раундов — это 5 полных кругов, каждая пара мух встречается 5 раз.
-- **Одни и те же сиды во всех наборах.** Поэтому сравнения парные: те же запахи, те же случайные броски, разница только в настройке.
-- **Контроль.** Все 8 мух без дофамина, то есть без обучения.
-- **Турнир мутантов.** На каждом сиде места мутантов перемешаны случайно, чтобы порядок пар и запахи не совпадали с мутацией.
-- **Перемешанная проводка не прогонялась.** У неё есть известная проблема считывания, см. README, раздел «Hidden setting».
+- **Engine.** The same model as the site (`src/game.ts`, `src/sim.ts`), run headless in Node (`LocalFly`), 8 processes in parallel.
+- **Size.** 14 settings × 100 seeds (1–100) × 35 rounds. 35 rounds are 5 full round-robins, so every pair of flies meets 5 times.
+- **Same seeds in every set.** Comparisons are paired: same odours, same random draws, only the setting differs.
+- **Control.** All 8 flies without dopamine, so no learning.
+- **Mutant tournament.** Mutant slots are shuffled on every seed, so pairing order and odours are not tied to a mutation.
+- **Shuffled wiring was not run.** It has a known readout problem, see the README section "Hidden setting".
 
-**Время.** Около 7 часов 45 минут реального времени:
-- 1400 игр — около 7 часов (25.09, 10:11–17:14);
-- перепрогон 200 игр с новым жёстким пресетом — 45 минут (19:00–19:45).
+**Time.** About 7 hours 45 minutes of wall-clock time.
+- 1,400 games took about 7 hours (25 September, 10:11–17:14).
+- Rerunning 200 games with the new harsh preset took 45 minutes (19:00–19:45).
 
-Сумма длительностей всех 1600 игр — 61.7 часа, из них 53.6 часа на 1400 игр в `data/`. Одна игра шла в среднем 2.3 минуты под нагрузкой, в одиночку около 35 секунд. Сюда не входят пилот и выброшенный первый запуск, около 20 минут.
+All 1,600 games add up to 61.7 hours of run time. Of that, 53.6 hours went to the 1,400 games in `data/`. A game took 2.3 minutes on average under load, about 35 seconds on its own. The pilot and the discarded first launch (about 20 minutes) are not counted.
 
-### Наборы
+### Settings
 
-Всё, что не указано, — по умолчанию: слухи 0.1, забывание 0.05, доверие 0, выплаты 5/3/1/0, взнос 2, стартовые деньги 30.
+Unless noted, everything is at the defaults: gossip 0.1, forgetting 0.05, trust 0, payoffs 5/3/1/0, ante 2, starting money 30.
 
-| Набор | Файл | Что изменено |
+| Set | File | Change |
 |---|---|---|
-| Контроль | `nullNoDAN` | все 8 мух без дофамина |
-| По умолчанию | `default` | — |
-| Без слухов | `gossip0` | слухи 0 |
-| Сильные слухи | `gossip1` | слухи 1 |
-| Без забывания | `forget0` | забывание 0 |
-| Быстрое забывание | `forget02` | забывание 0.2 |
-| Доверчивые | `trustPlus` | доверие +0.5 |
-| Осторожные | `trustMinus` | доверие −0.5 |
-| Щедрый мир | `generous` | выплаты 5/4/1/0 |
-| Жёсткий мир | `harsh` | выплаты 6/3/1/−1 |
-| Чистая память | `pureMemory` | забывание 0 + слухи 0 |
-| Дружелюбный мир | `friendlyWorld` | 5/4/1/0 + доверие +0.5 |
-| Враждебный мир | `hostileWorld` | 6/3/1/−1 + доверие −0.5 |
-| Турнир мутантов | `tournament` | 3 обычные мухи + без PPL1, без PAM, без дофамина, половина KC, без APL |
+| Control | `nullNoDAN` | all 8 flies without dopamine |
+| Default | `default` | none |
+| No gossip | `gossip0` | gossip 0 |
+| Strong gossip | `gossip1` | gossip 1 |
+| No forgetting | `forget0` | forgetting 0 |
+| Fast forgetting | `forget02` | forgetting 0.2 |
+| Trusting | `trustPlus` | trust +0.5 |
+| Wary | `trustMinus` | trust −0.5 |
+| Generous world | `generous` | payoffs 5/4/1/0 |
+| Harsh world | `harsh` | payoffs 6/3/1/−1 |
+| Pure memory | `pureMemory` | forgetting 0 + gossip 0 |
+| Friendly world | `friendlyWorld` | 5/4/1/0 + trust +0.5 |
+| Hostile world | `hostileWorld` | 6/3/1/−1 + trust −0.5 |
+| Mutant tournament | `tournament` | 3 intact flies + no PPL1, no PAM, no dopamine, half KCs, no APL |
 
-**«Ответность»** — главная мера обучения в отчёте. Это на сколько процентных пунктов муха чаще сотрудничает с тем, кто в прошлый раз сотрудничал с ней, чем с тем, кто её предал. Если она равна 0, муха не помнит, кто как с ней обошёлся.
+**Responsiveness** is the main measure of learning in this report. It is how many percentage points more often a fly cooperates with an opponent who cooperated with it last time than with one who defected. At 0, the fly does not remember how anyone treated it.
 
-## Чистота эксперимента
+## How clean is the experiment
 
-**Что сделано хорошо:**
-- Одни и те же 100 сидов во всех наборах, поэтому сравнения парные.
-- Результаты воспроизводятся: тот же сид даёт ту же игру.
-- Контроль чистый: сотрудничество 50.5%, ответность −0.4 п.п., то есть ноль.
-- В турнире места мутантов случайные.
+**Strengths**
+- The same 100 seeds in every set, so comparisons are paired.
+- Results are reproducible: the same seed gives the same game.
+- The control is clean: 50.5% cooperation and −0.4 pp responsiveness, which is zero.
+- Mutant slots in the tournament are random.
 
-**Ограничения:**
-1. **«Око за око» заложено в правила.** Знак дофамина всегда совпадает с поступком соперника: T и R (соперник сотрудничал) дают награду, S и P (соперник предал) — наказание. Муха учит «этот соперник хороший или плохой», а не «предавать выгодно». Научиться эксплуатировать других она не может в принципе.
-2. **Обучение само сдвигает мух к сотрудничеству, примерно до 57%.** Так во всех наборах с обучением, а у контроля 50%. По-видимому, это свойство модели, а не выбор мух.
-3. **Ручка «доверие» сильнее мозга.** Она двигает сотрудничество на ±25 п.п., а обучение меняет поведение на 3–23 п.п.
-4. **Мозг почти не чувствует выплат.** Сигнал дофамина нормирован на T и R и обрезан до ±1. Пресет 5/3/1/−1 давал ровно те же сигналы, что классика: в 94 играх из 100 ход игры совпал раунд в раунд. Поэтому пресет заменён на 6/3/1/−1 (коммит `6235036`), где награда за взаимное сотрудничество слабее: 0.5 против 0.6. Этот пресет мозг уже различает: в 31 игре из 100 ход разошёлся с классикой. Но средние цифры поведения не сдвинулись, как и в «щедром мире». Выплаты меняют, у кого деньги, а не то, как мухи играют.
-5. **Ярлыкам стратегий доверять нельзя.** Треть мух без обучения получает «осмысленную» стратегию, у 14% из них это «прощающее око за око».
-6. **Горизонт 35 раундов, а на сайте игра бесконечна.** Без забывания уже 12% синапсов упираются в минимум, и дальше будет больше.
-7. **Банкротства почти не искажают проценты.** Они заметны только во «враждебном мире» и случаются поздно, в среднем на 31-м раунде.
-8. **Роль реального коннектома не проверена.** Все выводы — «так ведёт себя эта модель на этом коннектоме».
-9. **Слухи несимметричны:** +0.6 за сотрудничество и −1 за предательство.
+**Limitations**
+1. **Tit-for-tat is built into the rules.** The sign of dopamine always matches the opponent's move. T and R (the opponent cooperated) are rewarded, S and P (the opponent defected) are punished. A fly learns whether an opponent is good or bad for it, not whether defecting pays. It cannot learn to exploit others.
+2. **Learning itself pushes flies towards cooperation, to about 57%.** This holds in every set with learning, while the control stays at 50%. It looks like a property of the model rather than a choice by the flies.
+3. **The trust knob outweighs the brain.** It moves cooperation by ±25 pp. Learning changes behaviour by 3 to 23 pp.
+4. **The brain barely feels the payoffs.** The dopamine signal is scaled by T and R and clipped at ±1. The 5/3/1/−1 preset sent exactly the same signals as the classic one, and 94 of 100 games matched round for round. It was replaced by 6/3/1/−1 (commit `6235036`), where the reward for mutual cooperation is weaker, 0.5 instead of 0.6. The brain does tell this preset apart: 31 of 100 games diverge from the classic one. Average behaviour still does not move, just as in the generous world. Payoffs change who ends up with the money, not how the flies play.
+5. **Strategy labels are unreliable.** A third of the flies without learning still get a meaningful label, and 14% of them are called forgiving tit-for-tat.
+6. **35 rounds, while the site runs forever.** Without forgetting, 12% of synapses already sit at the minimum, and that share will grow.
+7. **Bankruptcies barely distort the percentages.** They matter only in the hostile world and come late, around round 30.
+8. **The role of the real connectome is untested.** Every conclusion is about this model on this connectome.
+9. **Gossip is asymmetric:** +0.6 for cooperation, −1 for defection.
 
-## Отчёт по наборам
+## Results by set
 
-### 1. Контроль: все мухи без дофамина
-**Без обучения мухи — честная монетка: 50.5% сотрудничества, ответность ноль. Всё остальное сравнивается с этим.**
+### 1. Control: all flies without dopamine
+**Without learning, a fly is a fair coin: 50.5% cooperation, zero responsiveness. Everything else is compared with this.**
 
-Выбор мух определяет только шум в нейронах. Всё равно треть из них получает «стратегию», например «прощающее око за око» (14%) или «предатель» (5%). Это случайность, а не характер. Те, кто чаще предавал, богаче (корреляция −0.49): без памяти у соперников наказать за предательство некому.
+Only neural noise drives the choices. A third of the flies still get a strategy label, such as forgiving tit-for-tat (14%) or defector (5%). That is chance, not character. Flies that defected more end richer (correlation −0.49): without memory, nobody can punish defection.
 
-### 2. По умолчанию
-**Настройки по умолчанию показывают обучение в самой слабой форме: ответность всего 3.5 п.п.**
+### 2. Default
+**The default settings show learning at its weakest: responsiveness is only 3.5 pp.**
 
-Сотрудничество 57.4%. После сотрудничества соперника муха сотрудничает в 59.6%, после предательства в 55.6%. Разница статистически реальна (t≈3.9 против контроля), но на глаз её почти не видно. Предатели богаче (−0.32), почти половина мух получает ярлык «нестабильная».
+Cooperation is 57.4%. After the opponent cooperated, a fly cooperates 59.6% of the time, after a defection 55.6%. The gap is statistically real (t ≈ 3.9 against the control) but hard to see. Defectors end richer (−0.32), and almost half the flies are labelled unstable.
 
-### 3. Без слухов
-**Лучшая демонстрация обучения: ответность 22.6 п.п., в 6 раз больше, чем по умолчанию.**
+### 3. No gossip
+**The clearest sign of learning: responsiveness of 22.6 pp, six times the default.**
 
-После сотрудничества соперника муха сотрудничает в 68%, после предательства в 45%. Её отношение к сопернику хорошо совпадает с тем, как тот с ней обходился (корреляция 0.56 против 0.16 по умолчанию). Сотрудничество растёт с 51% в первом круге до 59% в пятом. Сотрудничать перестаёт быть невыгодно (корреляция с деньгами ≈ 0), богаче всех чаще всего «око за око» и «прощающее око за око».
+After the opponent cooperated, a fly cooperates 68% of the time, after a defection 45%. Its attitude to an opponent closely tracks how that opponent treated it (correlation 0.56, against 0.16 at the defaults). Cooperation grows from 51% in the first round-robin to 59% in the fifth. Cooperating stops costing money (correlation with wealth ≈ 0), and the richest flies are mostly tit-for-tat and forgiving tit-for-tat.
 
-### 4. Сильные слухи
-**Сильные слухи полностью стирают личную память: ответность 0.3 п.п., как у мух без мозга.**
+### 4. Strong gossip
+**Strong gossip wipes out personal memory: responsiveness is 0.3 pp, as in flies without a brain.**
 
-Муха видит 6 чужих ходов за раунд и делает только 1 свой. Репутация тоже не складывается: все сотрудничают около 57%, и отличить «хороших» от «плохих» не по чему. Память изношена сильнее всего, средний вес синапсов 0.72.
+A fly watches 6 moves by others each round and makes only 1 of its own. No reputation forms either: everyone cooperates about 57% of the time, so there is nothing to tell good flies from bad ones. Memory is the most worn here, with a mean synapse weight of 0.72.
 
-### 5. Без забывания
-**Отключить забывание почти ничего не меняет: картину определяют слухи.**
+### 5. No forgetting
+**Turning forgetting off changes almost nothing, because gossip dominates.**
 
-Сотрудничество 57.6%, ответность 3.0 п.п. Отношение к соперникам совпадает с их поведением чуть лучше (0.20 против 0.16). Но 12% синапсов уже на минимуме: память начинает «забиваться».
+Cooperation is 57.6%, responsiveness 3.0 pp. Attitudes track opponents slightly better (0.20 against 0.16). But 12% of synapses already sit at the minimum, so memory starts to clog.
 
-### 6. Быстрое забывание
-**К следующей встрече муха помнит соперника лишь на ~20%, и отношение к нему почти не совпадает с его поведением.**
+### 6. Fast forgetting
+**By the next meeting a fly keeps only about 20% of its memory of an opponent, and its attitude barely tracks the opponent's behaviour.**
 
-Пары встречаются раз в 7 раундов, а 0.8⁷ ≈ 0.21. Ответность 2.3 п.п., совпадение отношения с поведением 0.06. Уровень сотрудничества при этом тот же, 58%.
+Pairs meet every 7 rounds, and 0.8⁷ ≈ 0.21. Responsiveness is 2.3 pp, tracking 0.06. Cooperation stays at 58%.
 
-### 7. Доверчивые мухи (+0.5)
-**Одна ручка поднимает сотрудничество с 57% до 82%, а обучение остаётся тем же.**
+### 7. Trusting flies (+0.5)
+**One knob lifts cooperation from 57% to 82%, while learning stays the same.**
 
-Ответность 3.9 п.п., как по умолчанию. Общее богатство 460 против 351. У 88% мух ярлык «всегда сотрудничает». Даже здесь чаще предающие богаче (−0.32).
+Responsiveness is 3.9 pp, as at the defaults. Total wealth is 460 against 351. 88% of flies are labelled always cooperates. Even here, flies that defect more end richer (−0.32).
 
-### 8. Осторожные мухи (−0.5)
-**Осторожность обваливает сотрудничество до 28% и вдвое сокращает общее богатство.**
+### 8. Wary flies (−0.5)
+**Wariness drops cooperation to 28% and halves total wealth.**
 
-Богатство 177 против 351, в 20% игр хотя бы одна муха разоряется. 65% мух — «предатели», и самый богатый почти всегда предатель (72 из 100).
+Wealth is 177 against 351, and in 20% of games at least one fly goes bankrupt. 65% of flies are defectors, and the richest fly is almost always a defector (72 of 100).
 
-### 9. Щедрый мир (5/4/1/0)
-**Мухи не заметили щедрого мира: поведение как по умолчанию, выросли только кошельки.**
+### 9. Generous world (5/4/1/0)
+**The flies did not notice the generous world: behaviour matches the defaults, only the wallets grew.**
 
-Сотрудничество 57.5%, ответность 3.7 п.п. В 46 играх из 100 ход совпал с «по умолчанию» раунд в раунд. Богатство 443 против 351, сотрудничество «наказывается» слабее (−0.18 против −0.32).
+Cooperation is 57.5%, responsiveness 3.7 pp. 46 of 100 games match the defaults round for round. Wealth is 443 against 351, and cooperation costs less (−0.18 against −0.32).
 
-### 10. Жёсткий мир (6/3/1/−1)
-**Даже когда мозг чувствует жёсткий мир, мухи играют как обычно: сотрудничество 57.4%, ответность 3.2 п.п. Меняется только, кто богатеет.**
+### 10. Harsh world (6/3/1/−1)
+**Even when the brain feels the harsh world, flies play as usual: cooperation 57.4%, responsiveness 3.2 pp. Only who gets rich changes.**
 
-Награда за взаимное сотрудничество здесь слабее (0.5 вместо 0.6), и в 31 игре из 100 ход разошёлся с «по умолчанию», но в среднем поведение то же. Общее богатство мира тоже прежнее: 350 против 351. У этих выплат пара за партию в сумме получает столько же, сколько в классике. Зато деньги перетекают от доверчивых к предателям. «Всегда сотрудничает» теряет 6.6 монеты относительно среднего (по умолчанию 4.3), а связь «чаще сотрудничаешь — беднее» сильнее: −0.40 против −0.32. Банкротств мало, 3 на 100 игр.
+The reward for mutual cooperation is weaker here, 0.5 instead of 0.6. 31 of 100 games diverge from the defaults, but average behaviour is the same. Total wealth is unchanged too, 350 against 351, because a pair earns the same total per game as with the classic payoffs. Money moves from trusting flies to defectors. A fly that always cooperates loses 6.6 coins against the average (4.3 at the defaults). The link between cooperating more and ending poorer is stronger: −0.40 against −0.32. Bankruptcies are rare, 3 in 100 games.
 
-Для сравнения, старый пресет 5/3/1/−1 мозг не отличал от классики: 94 игры из 100 совпали раунд в раунд, богатство 282.
+For comparison, the brain could not tell the old 5/3/1/−1 preset from the classic one: 94 of 100 games matched round for round, and wealth was 282.
 
-### 11. Чистая память (без забывания и без слухов)
-**Без забывания муха отвечает хорошо (18 п.п.), но хуже, чем с лёгким забыванием (22.6 п.п.).**
+### 11. Pure memory (no forgetting, no gossip)
+**Without forgetting, a fly still responds well (18 pp), but less than with light forgetting (22.6 pp).**
 
-Без забывания веса синапсов только падают, и 9.5% из них к концу на минимуме. Лёгкое забывание «проветривает» память. Разница 18 против 22.6 статистически надёжна.
+Without forgetting, synapse weights can only fall, and 9.5% of them end at the minimum. Light forgetting keeps memory fresh. The gap between 18 and 22.6 is statistically reliable.
 
-### 12. Дружелюбный мир (щедрые выплаты + доверие)
-**Поведение как у доверчивых мух (82%), а богатство рекордное — 648. Эффекты складываются, не усиливая друг друга.**
+### 12. Friendly world (generous payoffs + trust)
+**Behaviour matches the trusting flies (82%), and wealth hits the record, 648. The effects add up without reinforcing each other.**
 
-Щедрые выплаты лишь умножают доход от сотрудничества. Предатели почти не богаче (−0.09).
+Generous payoffs only multiply what cooperation earns. Defectors are barely richer (−0.09).
 
-### 13. Враждебный мир (6/3/1/−1 + осторожность)
-**Самый конфликтный режим: сотрудничество 28%, в 53% игр кто-то разоряется, богатство вдвое меньше, чем по умолчанию.**
+### 13. Hostile world (6/3/1/−1 + wariness)
+**The most conflict-ridden setting: 28% cooperation, a bankruptcy in 53% of games, half the default wealth.**
 
-По поведению это просто осторожные мухи: в 47 играх из 100 ход совпал раунд в раунд, и общее богатство такое же, 178 против 177. Разница в том, кто платит. Быть обманутым стоит −3 за партию, поэтому немногие доверчивые разоряются. Всего 60 банкротств на 100 игр, в среднем на 30-м раунде. У осторожных мух в классике банкротство случается только в 20% игр. Богаче всех почти всегда «предатель», 74 из 100.
+Behaviourally these are just wary flies: 47 of 100 games match round for round, and total wealth is the same, 178 against 177. The difference is who pays. Being the sucker costs 3 coins per game, so the few trusting flies go broke. There are 60 bankruptcies in 100 games, around round 30. Wary flies with classic payoffs go bankrupt in only 20% of games. The richest fly is almost always a defector (74 of 100).
 
-Для сравнения, на старом пресете 5/3/1/−1 банкротство случалось в 73% игр, а общее богатство было 124: там обман уменьшал сумму, которую получает пара.
+For comparison, the old 5/3/1/−1 preset had a bankruptcy in 73% of games and total wealth of 124: there, being cheated shrank the pair's total.
 
-### 14. Турнир мутантов
-**Побеждает муха без дофамина награды (PAM): она чаще предаёт и в 48% игр богаче всех.**
+### 14. Mutant tournament
+**The fly without reward dopamine (PAM) wins: it defects more and is the richest fly in 48% of games.**
 
-| Муха | Сотрудничает | Деньги | Средний ранг | Первое место | Ответность |
+| Fly | Cooperates | Money | Mean rank | First place | Responsiveness |
 |---|---|---|---|---|---|
-| без PAM (нет награды) | 35% | 56 | 2.3 | 48% | −1.3 п.п. |
-| без дофамина | 50% | 47 | 3.7 | 15% | −0.6 п.п. |
-| половина KC | 54% | 46 | 4.1 | 14% | 4.3 п.п. |
-| обычная | 57% | 43 | 4.6 | 7% | 5.3 п.п. |
-| без APL | 68% | 37 | 5.6 | 1% | 0.8 п.п. |
-| без PPL1 (нет наказания) | 77% | 32 | 6.5 | 0% | 1.1 п.п. |
+| no PAM (no reward) | 35% | 56 | 2.3 | 48% | −1.3 pp |
+| no dopamine | 50% | 47 | 3.7 | 15% | −0.6 pp |
+| half KCs | 54% | 46 | 4.1 | 14% | 4.3 pp |
+| intact | 57% | 43 | 4.6 | 7% | 5.3 pp |
+| no APL | 68% | 37 | 5.6 | 1% | 0.8 pp |
+| no PPL1 (no punishment) | 77% | 32 | 6.5 | 0% | 1.1 pp |
 
-Кто выигрывает, определяет склонность сотрудничать, а не ум: чем реже муха сотрудничает, тем она богаче (−0.62). Мухе без PAM доступно только наказание, поэтому она предаёт. Муха без PPL1 знает только награду, становится наивной, и её обирают.
+The winner is decided by how readily a fly cooperates, not by how smart it is: the less a fly cooperates, the richer it ends (−0.62). A fly without PAM only gets punishment, so it defects. A fly without PPL1 only gets reward, turns naive and gets exploited.
 
-## Что выгодно мухе и что выгодно миру
+## What pays for one fly, and what pays for the world
 
-Среднее богатство одной мухи:
+Average wealth per fly (start: 30):
 
-| Мир | Сотрудничество | Денег на муху |
+| World | Cooperation | Coins per fly |
 |---|---|---|
-| доверчивые | 82% | 57.5 |
-| по умолчанию | 57% | 43.9 |
-| без слухов | 57% | 43.3 |
-| осторожные | 28% | 22.1 |
+| friendly | 82% | 81.0 |
+| trusting | 82% | 57.5 |
+| default | 57% | 43.9 |
+| no gossip | 57% | 43.3 |
+| hostile | 28% | 22.2 |
+| wary | 28% | 22.1 |
 
-На сколько муха с данным ярлыком богаче или беднее среднего в своей игре:
+How much richer or poorer than the game average a fly with each label ends:
 
-| Мир | «предатель» | «око за око» | «прощающее око за око» | «всегда сотрудничает» |
+| World | defector | tit-for-tat | forgiving tit-for-tat | always cooperates |
 |---|---|---|---|---|
-| контроль | **+6.7** | — | −5.5 | −8.6 |
-| по умолчанию | — | **+7.7** (n=21) | −0.6 | −4.3 |
-| без слухов | — | **+3.9** | −1.0 | −1.9 |
-| чистая память | — | **+5.5** | −0.9 | −2.2 |
-| осторожные | **+1.6** | −4.8 | — | — |
+| control | **+6.7** | – | −5.5 | −8.6 |
+| mutant tournament | **+14.8** | – | −3.3 | −8.5 |
+| default | – | **+7.7** (n=21) | −0.6 | −4.3 |
+| harsh | – | **+7.6** (n=20) | −1.5 | −6.6 |
+| no gossip | – | **+3.9** | −1.0 | −1.9 |
+| pure memory | – | **+5.5** | −0.9 | −2.2 |
+| wary | **+1.6** | −4.8 | – | – |
+| hostile | **+2.7** | −5.3 | – | – |
 
-Прочерк означает, что таких мух меньше 20. Ярлыки шумные (ограничение 5), поэтому это тенденции, а не точные оценки.
+A dash means fewer than 20 such flies. Labels are noisy (limitation 5), so read these as trends, not precise estimates.
 
-## Как воспроизвести
+## Reproducing
 
-Из корня репозитория:
+From the repository root:
 
 ```
 node --experimental-transform-types experiments/2026-09-25-sweep/run.ts default 1 100 35 /tmp/default.jsonl
-node experiments/2026-09-25-sweep/analyze.mjs                      # сводка по data/
-node experiments/2026-09-25-sweep/analyze.mjs <папка с .jsonl>     # сводка по другой папке
+node experiments/2026-09-25-sweep/analyze.mjs                    # summary of data/
+node experiments/2026-09-25-sweep/analyze.mjs <folder of .jsonl> # summary of another folder
 ```
 
-Названия наборов — в `CFGS` в `run.ts`. Одна строка в `.jsonl` — одна игра: итоги, сотрудничество по раундам, счётчики стратегий и деньги каждой мухи.
+Set names are in `CFGS` in `run.ts`. Each line of a `.jsonl` file is one game: totals, cooperation per round, strategy counters and each fly's money.
