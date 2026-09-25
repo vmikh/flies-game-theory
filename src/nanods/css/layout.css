@@ -14,7 +14,9 @@
 .island-fade::before { top: 0; background: linear-gradient(to bottom, var(--c-island) 10%, rgba(23, 26, 33, 0)); }
 .island-fade::after { bottom: 0; background: linear-gradient(to top, var(--c-island) 10%, rgba(23, 26, 33, 0)); }
 
-.card { background: var(--c-surface-2); border-radius: var(--rd-3); padding: var(--mp-3); }   /* same tone as inputs and secondary buttons */
+.card { background: var(--c-surface-2); border-radius: var(--rd-3); padding: var(--mp-4); }   /* same tone as inputs and secondary buttons */
+.card-head { display: flex; flex-direction: column; gap: var(--mp-05); margin-bottom: var(--mp-3); }   /* title and subtitle sit together, content further away */
+.card-title { font-size: var(--fs-body); font-weight: var(--fw-semibold); } .card-sub { font-size: var(--fs-meta); color: var(--c-fg-4); }
 .divider { border: 0; border-top: 1px solid var(--c-line); margin: var(--mp-3) 0; }
 
 /* flow utilities */
