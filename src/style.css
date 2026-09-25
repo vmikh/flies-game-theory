@@ -46,9 +46,9 @@ html, body, #app { height: 100%; }
 .lrow .c { color: var(--coop); font-weight: var(--fw-semibold); } .lrow .d { color: var(--defect); font-weight: var(--fw-semibold); }
 
 /* parameters panel */
-#params { width: min(520px, 100%); }
-#params h2 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); margin: var(--mp-4) 0 var(--mp-1); }
-#params .field > .input, #params .field > .select { width: 180px; }
+#params { width: min(560px, 100%); }
+#params h2.section-h { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); margin: var(--mp-4) 0 var(--mp-1); }
+#params .field > .input, #params .field > .select { width: 210px; }
 #params .field.compact { padding: var(--mp-05) 0; }
 #params .legend { margin-top: var(--mp-3); font-size: var(--fs-sm); line-height: 1.4; }
 #params .legend dl { margin: var(--mp-15) 0 0; display: grid; grid-template-columns: auto 1fr; gap: var(--mp-1) var(--mp-25); } #params .legend dt { color: var(--c-danger); white-space: nowrap; } #params .legend dd { margin: 0; color: var(--c-fg-4); }

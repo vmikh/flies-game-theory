@@ -33,7 +33,7 @@ app.innerHTML = `
   <div class="field"><label class="label"><span data-i18n="forgetting"></span><span class="hint" data-i18n-html="forgettingHint"></span></label><input class="input" id="p-forgetPerRound" type="number" step="0.01" min="0" max="1"></div>
   <div class="field"><label class="label"><span data-i18n="trustBias"></span><span class="hint" data-i18n-html="trustBiasHint"></span></label><input class="input" id="p-trustBias" type="number" step="0.05"></div>
   <div class="field"><label class="label"><span data-i18n="payoffs"></span><span class="hint" data-i18n="payoffsHint"></span></label><select class="select" id="p-payoffPreset"><option value="5,3,1,0" data-i18n="presetClassic"></option><option value="5,4,1,0" data-i18n="presetGenerous"></option><option value="8,3,1,0" data-i18n="presetHarsh"></option></select></div>
-  <h2 data-i18n="lesions"></h2>
+  <h2 class="section-h" data-i18n="lesions"></h2>
   <div id="lesions">${Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => `<div class="field compact"><label class="label">F${i + 1}</label><select class="select select-sm" id="p-lesion-${i}">${LESIONS.map((l) => `<option value="${l.id}"></option>`).join('')}</select></div>`).join('')}</div>
   <div class="legend"><div class="muted" data-i18n="mutationsHint"></div><dl id="lesion-legend"></dl></div>
   <details id="advanced" hidden><summary data-i18n="advanced"></summary>
