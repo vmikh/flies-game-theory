@@ -142,9 +142,10 @@ function render(s: Snapshot) {
   const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
   d3.select('#lb').selectAll('div.row').data(flies, (d: any) => d.id).join('div').attr('class', (f) => `row${f.alive ? '' : ' dead'}`).html((f) => {
     const cr = f.games ? f.coops / f.games : 0; const les = LESIONS.find((x) => x.id === f.lesion);
-    return `<div class="r1"><span class="name">${f.name}${f.lineage !== f.id ? `<span class="tag">clone of F${f.lineage + 1}</span>` : ''}${f.lesion !== 'none' ? `<span class="tag lesion">${les?.label}</span>` : ''}</span>
+    const tags = `${f.lineage !== f.id ? `<span class="tag">clone of F${f.lineage + 1}</span>` : ''}${f.lesion !== 'none' ? `<span class="tag lesion">${les?.label}</span>` : ''}`;
+    return `<div class="r1"><span class="name">${f.name}</span>
         <span class="bar"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span><span class="num">${f.money.toFixed(0)}</span></div>
-      <div class="r2"><span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${f.strategy.label}</span></span>
+      <div class="r2"><span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${f.strategy.label}</span>${tags}</span>
         <span class="stats">${f.games} games · coop ${(100 * cr).toFixed(0)}% · betrayed ${f.betrayed}</span></div>`;
   });
   const n = s.flies.length, cell = 26, pad = 24; const svg = d3.select('#tm').attr('width', pad + n * cell).attr('height', pad + n * cell);
