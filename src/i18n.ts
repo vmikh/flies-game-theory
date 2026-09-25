@@ -9,7 +9,7 @@ const D = {
   mobileBrainLoading: { en: 'Loading the brain…', ru: 'Загружаем мозг…' },
   mobileBrainUnavailable: { en: 'The 3D model could not be loaded.', ru: 'Не удалось загрузить 3D-модель.' },
   mobileDrag: { en: 'Drag to rotate the brain', ru: 'Потяните, чтобы повернуть мозг' },
-  mobileDesktopNote: { en: 'Open this site on a desktop screen (1350 px or wider) to watch and control the full experiment.', ru: 'Чтобы посмотреть эксперимент целиком и управлять им, откройте сайт на компьютере с экраном от 1350 px.' },
+  mobileDesktopNote: { en: 'To watch and control the full experiment, open this site on a computer.', ru: 'Чтобы посмотреть эксперимент целиком и управлять им, откройте сайт на компьютере.' },
   starting: { en: 'starting…', ru: 'запуск…' },
   loadingSkeletons: { en: 'loading skeletons…', ru: 'загрузка скелетов…' },
   spawning: { en: 'spawning {n} brains…', ru: 'создаём {n} мозгов…' },
