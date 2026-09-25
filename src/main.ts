@@ -167,7 +167,7 @@ async function loop() {
     const s = game.snapshot(); history.push({ round: s.round, coop: s.recentCoopRate });
     const now = performance.now();
     if (now - lastRender > 80 || budget === 0 || speedX <= 5) { render(s); lastRender = now; }
-    status.textContent = t('statusLine', { r: s.round, g: s.games, c: (100 * s.coopRate).toFixed(0) }) + (speedX >= 20 ? ` · ${t('roundsPerSec', { v: (1000 / (now - t0)).toFixed(1) })}` : '') + (game.over ? ` · ${t('gameOver')}` : '');
+    status.textContent = t('statusLine', { r: s.round, c: (100 * s.coopRate).toFixed(0) }) + (game.over ? ` · ${t('gameOver')}` : '');
     const wait = 1000 / targetRps() - (performance.now() - t0);
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   }

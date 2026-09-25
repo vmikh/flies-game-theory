@@ -9,7 +9,7 @@ const D = {
   spawning: { en: 'spawning {n} brains…', ru: 'создаём {n} мозгов…' },
   building: { en: 'building brains…', ru: 'строим мозги…' },
   shuffledWiring: { en: 'shuffled wiring', ru: 'перемешанная проводка' },
-  statusLine: { en: 'round {r} · {g} games · coop {c}%', ru: 'раунд {r} · {g} партий · сотрудничество {c}%' },
+  statusLine: { en: 'round {r} · cooperation {c}%', ru: 'раунд {r} · сотрудничество {c}%' },
   roundsPerSec: { en: '{v} rounds/s', ru: '{v} раундов/с' },
   play: { en: 'Play', ru: 'Играть' }, pause: { en: 'Pause', ru: 'Пауза' },
   parameters: { en: 'Parameters', ru: 'Параметры' }, aboutTitle: { en: 'About this experiment', ru: 'Об эксперименте' }, about: { en: 'About', ru: 'О проекте' }, close: { en: 'Close', ru: 'Закрыть' },
