@@ -10,13 +10,13 @@ const a = (href: string, text: string) => `<a href="${href}" target="_blank" rel
 
 export function aboutHtml(lang: Lang): string {
   if (lang === 'ru') return `
-<p>Восемь мозгов дрозофилы играют друг с другом в повторяющуюся дилемму заключённого. Игра в них не запрограммирована:
-муха решает, нюхая соперника, приблизиться к нему или избежать, и учится только так, как учится настоящая муха, через дофамин.</p>
-<h3>Эксперимент</h3>
-<p>Каждая муха это <b>запах-идентификатор</b>: свой набор из 7 гломерул антеннальной доли. Приблизиться к запаху значит <b>сотрудничать</b>, избежать значит <b>предать</b>.
-Выплата за партию (5 / 3 / 1 / 0) превращается в дофамин: хороший исход включает нейроны награды (PAM), плохой нейроны наказания (PPL1).
-Мухи видят и чужие партии и получают о каждом игроке ослабленный дофаминовый сигнал (слухи). Разорившуюся муху заменяет клон лидера с чуть искажённой памятью.
-Стратегии нигде не прописаны, они читаются по поведению задним числом, как у Аксельрода: как часто муха сотрудничает при первой встрече, после сотрудничества соперника, после его предательства.</p>
+<p>Восемь мозгов дрозофилы играют друг с другом в игру «сотрудничать или предать». Правил игры в них не заложено: мозги настоящие, взятые из карты всех нейронов мухи, и умеют они только то, что умеет живая муха.</p>
+<h3>Как муха вообще может играть</h3>
+<p>Муха живёт запахами. Главное, что умеет её мозг, это запомнить: «этот запах был связан с чем-то вкусным» или «с чем-то плохим». Потом, почуяв знакомый запах, она либо идёт к нему, либо уходит. Это и есть вся её память.</p>
+<p>Мы пользуемся этим так. <b>Каждой мухе выдан свой запах</b>, как бейджик с именем. Когда две мухи встречаются, каждая «нюхает» бейджик соперницы. Если память говорит «от этого запаха было хорошо», муха тянется к нему, и мы считаем это за <b>сотрудничество</b>. Если «от этого запаха было плохо», муха избегает его, и это <b>предательство</b>. Незнакомый запах ей безразличен, поэтому с незнакомцем решение почти как монетка.</p>
+<p>Дальше игра платит. Если обе сотрудничали, каждая получает 3 очка. Если одна предала, а другая сотрудничала, предательница получает 5, а обманутая ничего. Если обе предали, по 1. Хорошая выплата подаётся мухе так же, как в жизни подаётся сахар: включаются нейроны удовольствия. Плохая как удар током: включаются нейроны боли. В этот момент муха всё ещё чует запах соперницы, и мозг связывает одно с другим: «запах F3 = неприятности». В следующий раз при встрече с F3 муха её избегает, то есть предаёт.</p>
+<p>Мухи ещё и подглядывают за чужими партиями и получают слабый сигнал «этот запах предал» или «этот запах сотрудничал». Так рождаются слухи и репутация. Муха, у которой кончились очки, выбывает, а её место занимает копия лидера с его памятью.</p>
+<p>Стратегии никто не программировал. Мы просто смотрим на поведение задним числом: как часто муха сотрудничает при первой встрече, после того как с ней поступили хорошо, и после того как её обманули. По этим трём числам ей даётся имя, например «око за око» или «всегда сотрудничает».</p>
 <h3>Под капотом</h3>
 <ul>
 <li><b>Проводка</b>: грибовидное тело правого полушария из коннектома ${a(L.malecns, 'Male CNS v1.0')} (HHMI Janelia FlyEM, Google Research, Кембридж, MRC LMB; CC-BY 4.0):
@@ -42,13 +42,13 @@ ${a(L.google, 'Анонс Google Research')}.</li>
 </ul>
 <p class="muted">Это модель, ограниченная коннектомом, а не запись живой мухи. Проводка, числа синапсов и знаки медиаторов это данные; правило обучения, считывание решения и перевод выплат в дофамин это модельные допущения.</p>`;
   return `
-<p>Eight fruit-fly brains play an iterated prisoner's dilemma against each other. Nothing about the game is programmed into them:
-each fly decides by smelling its opponent and either approaching or avoiding, and learns only the way a real fly learns, through dopamine.</p>
-<h3>The experiment</h3>
-<p>Every fly is an <b>identity odour</b>: a private set of 7 glomeruli of the antennal lobe. Approaching the odour means <b>cooperate</b>, avoiding it means <b>defect</b>.
-The payoff of each game (5 / 3 / 1 / 0) becomes dopamine: a good outcome drives the reward neurons (PAM), a bad one the punishment neurons (PPL1).
-Flies also watch the other games and get a weaker dopamine signal about what each player did (gossip). A fly with no money left is replaced by a mutated clone of the leader.
-Strategies are not written anywhere; they are read off the behaviour afterwards, Axelrod-style: how often a fly cooperates on a first meeting, after the opponent cooperated, after it defected.</p>
+<p>Eight fruit-fly brains play a game of "cooperate or betray" against each other. The rules are not built into them: the brains are real, taken from the map of every neuron in a fly, and they can only do what a living fly can do.</p>
+<h3>How can a fly play at all</h3>
+<p>A fly lives by smell. The main thing its brain can do is remember "this smell came with something tasty" or "this smell came with something bad". Later, on meeting a familiar smell, it either walks toward it or away from it. That is the whole of its memory.</p>
+<p>We use that as follows. <b>Every fly is given its own smell</b>, like a name badge. When two flies meet, each "sniffs" the other's badge. If memory says "this smell was good for me", the fly is drawn to it, and we count that as <b>cooperating</b>. If memory says "this smell was bad", the fly avoids it, and that counts as <b>betraying</b>. An unfamiliar smell leaves it indifferent, so with a stranger the choice is close to a coin flip.</p>
+<p>Then the game pays out. If both cooperated, each gets 3 points. If one betrayed and the other cooperated, the betrayer gets 5 and the victim nothing. If both betrayed, 1 each. A good payout is delivered to the fly the way sugar is in real life: its pleasure neurons switch on. A bad one is delivered like an electric shock: its pain neurons switch on. At that moment the fly still smells its opponent, and the brain ties the two together: "the smell of F3 = trouble". Next time it meets F3, it avoids it, that is, it betrays.</p>
+<p>Flies also watch the other games and receive a faint "this smell betrayed" or "this smell cooperated" signal. That is how gossip and reputation appear. A fly that runs out of points drops out, and a copy of the leader, memory included, takes its place.</p>
+<p>Nobody programmed any strategies. We just look at behaviour afterwards: how often a fly cooperates on a first meeting, after it was treated well, and after it was cheated. Those three numbers give it a name, such as "tit-for-tat" or "always cooperates".</p>
 <h3>Under the hood</h3>
 <ul>
 <li><b>Wiring</b>: the mushroom body of the right hemisphere from the ${a(L.malecns, 'Male CNS v1.0 connectome')} (HHMI Janelia FlyEM, Google Research, Cambridge, MRC LMB; CC-BY 4.0):
