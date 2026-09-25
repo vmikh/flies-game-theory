@@ -36,8 +36,8 @@ export class Arena {
   constructor(readonly container: HTMLElement, readonly c: Circuit, skelMeta: SkelMeta, skelBin: ArrayBuffer, nBrains: number) {
     this.nBrains = nBrains; this.nNeurons = c.n; this.playback = Array(nBrains).fill(null);
     this.danIds = c.ids('DAN'); this.pamIds = c.idsByPrefix('DAN', 'PAM'); this.ppl1Ids = c.idsByPrefix('DAN', 'PPL1');
-    this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); this.renderer.setClearColor(0x000000, 1); this.renderer.autoClear = false;
+    this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, premultipliedAlpha: true, powerPreference: 'high-performance' });
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); this.renderer.setClearColor(0x000000, 0); this.renderer.autoClear = false;
     container.appendChild(this.renderer.domElement);
     this.camera = new THREE.PerspectiveCamera(22, 1, 0.01, 100);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement); this.controls.enableDamping = true; this.controls.dampingFactor = 0.08; this.controls.enablePan = false; this.controls.maxPolarAngle = Math.PI * 0.49;
@@ -56,11 +56,12 @@ export class Arena {
     // HDR accumulation + tone map
     this.hdr = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, depthBuffer: false });
     this.toneMat = new THREE.ShaderMaterial({
-      uniforms: { tHdr: { value: this.hdr.texture }, uExposure: { value: 1.0 }, uBg: { value: new THREE.Color(0x171a21) } },
+      uniforms: { tHdr: { value: this.hdr.texture }, uExposure: { value: 1.0 } },
       vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
-      fragmentShader: `uniform sampler2D tHdr; uniform float uExposure; uniform vec3 uBg; varying vec2 vUv;
-        void main() { vec3 h = texture2D(tHdr, vUv).rgb * uExposure; vec3 t = vec3(1.0) - exp(-h); gl_FragColor = vec4(uBg + t * (1.0 - uBg), 1.0); }`,
-      depthTest: false, depthWrite: false,
+      // transparent output: the island behind the canvas shows through; alpha follows the tone-mapped brightness (premultiplied)
+      fragmentShader: `uniform sampler2D tHdr; uniform float uExposure; varying vec2 vUv;
+        void main() { vec3 h = texture2D(tHdr, vUv).rgb * uExposure; vec3 t = vec3(1.0) - exp(-h); gl_FragColor = vec4(t, max(max(t.r, t.g), t.b)); }`,
+      depthTest: false, depthWrite: false, transparent: true, blending: THREE.NoBlending,
     });
     this.toneScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.toneMat));
     this.camera.position.set(0, 5.6, 4.0); this.camera.lookAt(0, 0, 0);
