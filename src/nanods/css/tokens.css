@@ -43,7 +43,7 @@
   --c-warn: #D9B04A;
 
   /* palette · glass */
-  --c-scrim: rgba(10, 11, 14, .62);
+  --c-scrim: rgba(10, 11, 14, .84);
   --c-scrim-strong: rgba(6, 7, 10, .6);
   --c-glass: rgba(242, 244, 247, .22);
   --c-glass-hover: rgba(242, 244, 247, .16);

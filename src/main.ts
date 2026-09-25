@@ -26,7 +26,9 @@ app.innerHTML = `
     <div id="about-body"></div>
   </div>
 </div>
-<aside id="params" hidden>
+<div id="params-scrim" class="scrim" hidden>
+<div id="params" class="modal">
+  <div class="modal-head"><h2 class="t-h3" data-i18n="parameters"></h2></div>
   <div class="field"><label class="label"><span data-i18n="gossip"></span><span class="hint" data-i18n-html="gossipHint"></span></label><input class="input" id="p-observeGain" type="number" step="0.05" min="0" max="2"></div>
   <div class="field"><label class="label"><span data-i18n="forgetting"></span><span class="hint" data-i18n-html="forgettingHint"></span></label><input class="input" id="p-forgetPerRound" type="number" step="0.01" min="0" max="1"></div>
   <div class="field"><label class="label"><span data-i18n="trustBias"></span><span class="hint" data-i18n-html="trustBiasHint"></span></label><input class="input" id="p-trustBias" type="number" step="0.05"></div>
@@ -44,8 +46,9 @@ app.innerHTML = `
     <div class="field compact"><label class="label">start money</label><input class="input input-sm" id="p-startMoney" type="number"></div>
     <div class="field compact"><label class="label">payoff T / R / P / S</label><span class="row"><input class="input input-sm" id="p-T" type="number" style="width:3.4em"><input class="input input-sm" id="p-R" type="number" style="width:3.4em"><input class="input input-sm" id="p-P" type="number" style="width:3.4em"><input class="input input-sm" id="p-S" type="number" style="width:3.4em"></span></div>
   </details>
-  <button id="restart" class="btn btn-primary btn-block" data-i18n="restart"></button>
-</aside>
+  <div class="row modal-actions"><span class="spacer"></span><button id="params-cancel" class="btn" data-i18n="cancel"></button><button id="restart" class="btn btn-primary" data-i18n="apply"></button></div>
+</div>
+</div>
 <main class="layout">
   <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn btn-sm"><span data-i18n="back"></span> <span class="kbd">Esc</span></button></div></div></section>
 </main>
@@ -113,24 +116,30 @@ fillParams(DEFAULT_GAME);
 if (new URLSearchParams(location.search).has('advanced')) document.getElementById('advanced')!.hidden = false;
 const presetSel = $('p-payoffPreset') as unknown as HTMLSelectElement;
 presetSel.onchange = () => { const [T, R, P, S] = presetSel.value.split(',').map(Number); $('p-T').value = String(T); $('p-R').value = String(R); $('p-P').value = String(P); $('p-S').value = String(S); };
-document.getElementById('toggle-params')!.onclick = () => { const a = document.getElementById('params')!; a.hidden = !a.hidden; };
+const paramsScrim = document.getElementById('params-scrim')!;
+let currentParams: typeof DEFAULT_GAME = DEFAULT_GAME; let currentShuffle: ShuffleMode = 'none';
+function openParams() { fillParams(currentParams); for (let i = 0; i < DEFAULT_GAME.nFlies; i++) $(`p-lesion-${i}`).value = currentParams.lesions[i] ?? 'none'; $('p-shuffle').value = currentShuffle; paramsScrim.hidden = false; }
+function closeParams() { paramsScrim.hidden = true; }
+document.getElementById('toggle-params')!.onclick = () => (paramsScrim.hidden ? openParams() : closeParams());
+document.getElementById('params-cancel')!.onclick = closeParams;
+paramsScrim.onclick = (e) => { if (e.target === paramsScrim) closeParams(); };
 const about = document.getElementById('about')!;
 document.getElementById('toggle-about')!.onclick = () => (about.hidden = !about.hidden);
 document.getElementById('about-close')!.onclick = () => (about.hidden = true);
 about.onclick = (e) => { if (e.target === about) about.hidden = true; };
-addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') about.hidden = true; });
+addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') { about.hidden = true; closeParams(); } });
 
 let game: Game;
 async function startGame() {
   playing = false; game?.dispose(); history.length = 0;
   if ($('p-randomSeed').checked) $('p-seed').value = String(1 + Math.floor(Math.random() * 1e6));
-  const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode;
+  const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode; currentParams = p; currentShuffle = shuffle;
   status.textContent = t('spawning', { n: p.nFlies });
   game = await Game.create(circuit, p, async (id, seed, lesion) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed, lesion); return f; }, () => (status.textContent = t('building')));
   arena.setTags(p.lesions.map((l) => (l === 'none' ? '' : lesionLabel(l))));
   render(game.snapshot()); status.textContent = t('statusLine', { r: 0, c: 0 }) + (shuffle === 'none' ? '' : ` · ${t('shuffledWiring')}`);
 }
-document.getElementById('restart')!.onclick = () => void startGame();
+document.getElementById('restart')!.onclick = () => { closeParams(); void startGame(); };
 const capEl = document.getElementById('caption')!, capText = document.getElementById('cap-text')!;
 function caption(b: number) {
   const s = lastSnap; if (!s) return; const f = s.flies[b]; const m = s.movies[b]; const st = f.strategy;

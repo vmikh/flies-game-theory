@@ -25,7 +25,7 @@ const D = {
   presetClassic: { en: 'classic 5 / 3 / 1 / 0', ru: 'классика 5 / 3 / 1 / 0' }, presetGenerous: { en: 'generous 5 / 4 / 1 / 0', ru: 'щедрый мир 5 / 4 / 1 / 0' }, presetHarsh: { en: 'harsh 8 / 3 / 1 / 0', ru: 'жёсткий мир 8 / 3 / 1 / 0' },
   lesions: { en: 'Mutations', ru: 'Мутации' }, perFly: { en: '(set per fly)', ru: '(отдельно для каждой мухи)' },
   mutationsHint: { en: 'A mutant fly has part of its brain switched off. What it does to behaviour:', ru: 'У мухи-мутанта отключена часть мозга. Как это меняет поведение:' },
-  restart: { en: 'Restart with these parameters', ru: 'Перезапустить с этими параметрами' },
+  apply: { en: 'Apply and restart', ru: 'Применить и начать заново' }, cancel: { en: 'Cancel', ru: 'Отмена' },
   advanced: { en: 'Advanced', ru: 'Дополнительно' },
   // lesion labels + hints
   'les.none': { en: 'normal', ru: 'обычная' }, 'les.none.hint': { en: '', ru: '' },

@@ -46,13 +46,13 @@ html, body, #app { height: 100%; }
 .lrow .c { color: var(--coop); font-weight: var(--fw-semibold); } .lrow .d { color: var(--defect); font-weight: var(--fw-semibold); }
 
 /* parameters panel */
-#params { position: absolute; right: var(--gutter); top: 72px; z-index: 5; width: 440px; max-height: calc(100% - 88px); overflow: auto; padding: var(--island-pad); background: var(--c-surface); border-radius: var(--rd-island); box-shadow: var(--shadow-pop); }
+#params { width: min(520px, 100%); }
 #params h2 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); margin: var(--mp-4) 0 var(--mp-1); }
 #params .field > .input, #params .field > .select { width: 180px; }
 #params .field.compact { padding: var(--mp-05) 0; }
 #params .legend { margin-top: var(--mp-3); font-size: var(--fs-sm); line-height: 1.4; }
 #params .legend dl { margin: var(--mp-15) 0 0; display: grid; grid-template-columns: auto 1fr; gap: var(--mp-1) var(--mp-25); } #params .legend dt { color: var(--c-danger); white-space: nowrap; } #params .legend dd { margin: 0; color: var(--c-fg-4); }
-#params .btn-block { margin-top: var(--mp-4); }
+.modal-actions { margin-top: var(--mp-5); gap: var(--mp-2); }
 #advanced summary { cursor: pointer; font-size: var(--fs-sm); color: var(--c-fg-4); margin-top: var(--mp-4); }
 
 /* close-up caption */
