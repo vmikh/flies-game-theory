@@ -41,9 +41,9 @@ app.innerHTML = `
   <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-replay">↻ Replay</button><button id="cap-back">← Back (Esc)</button></div></div></section>
   <aside class="side">
     <section id="board"><h2>Ranking</h2><div id="lb"></div></section>
-    <section id="trust"><h2>Trust <span class="muted">row = fly, col = opponent</span></h2><svg id="tm"></svg></section>
-    <section id="timeline"><h2>Cooperation <span class="muted">last 200 decisions</span></h2><svg id="tl"></svg></section>
-    <section id="log"><h2>Last games</h2><pre id="lg"></pre></section>
+    <section id="trust"><h2>Trust</h2><div class="sub">row: how the fly feels about each opponent · green approach, red avoid</div><svg id="tm"></svg></section>
+    <section id="timeline"><h2>Cooperation</h2><div class="sub">share of cooperative choices, last 200 decisions</div><svg id="tl"></svg></section>
+    <section id="log"><h2>Last games</h2><div id="lg"></div></section>
   </aside>
 </main>`;
 const status = document.getElementById('status')!;
@@ -90,7 +90,7 @@ async function startGame() {
   status.textContent = 'spawning ${DEFAULT_GAME.nFlies} brains…';
   game = await Game.create(circuit, p, async (id, seed, lesion) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed, lesion); return f; }, (m) => (status.textContent = m));
   arena.setTags(p.lesions.map((l) => LESIONS.find((x) => x.id === l)?.label ?? ''));
-  render(game.snapshot()); status.textContent = `ready · seed ${p.seed}${shuffle === 'none' ? '' : ' · shuffled wiring'}`;
+  render(game.snapshot()); status.textContent = shuffle === 'none' ? '' : 'shuffled wiring';
 }
 document.getElementById('restart')!.onclick = () => void startGame();
 const capEl = document.getElementById('caption')!, capText = document.getElementById('cap-text')!;
@@ -132,13 +132,12 @@ if (auto) { $('p-randomSeed').checked = false; budget = Number(auto); speedX = N
 function render(s: Snapshot) {
   lastSnap = s; arena.update(s); if (arena.focused !== null) caption(arena.focused);
   const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
-  d3.select('#lb').selectAll('div.row').data(flies, (d: any) => d.id).join('div').attr('class', 'row').html((f) => {
-    const cr = f.games ? f.coops / f.games : 0;
-    return `<span class="name">${f.name}${f.lineage !== f.id ? `<sub>←F${f.lineage + 1}</sub>` : ''}${f.lesion !== 'none' ? `<sub class="lesion">${LESIONS.find((x) => x.id === f.lesion)?.label}</sub>` : ''}</span>
-      <span class="bar"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span>
-      <span class="num">${f.money.toFixed(0)}</span>
-      <span class="muted small">${f.games} games · coop ${(100 * cr).toFixed(0)}% · betrayed ${f.betrayed}</span>
-      <span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${f.strategy.label}</span></span>`;
+  d3.select('#lb').selectAll('div.row').data(flies, (d: any) => d.id).join('div').attr('class', (f) => `row${f.alive ? '' : ' dead'}`).html((f) => {
+    const cr = f.games ? f.coops / f.games : 0; const les = LESIONS.find((x) => x.id === f.lesion);
+    return `<div class="r1"><span class="name">${f.name}${f.lineage !== f.id ? `<span class="tag">clone of F${f.lineage + 1}</span>` : ''}${f.lesion !== 'none' ? `<span class="tag lesion">${les?.label}</span>` : ''}</span>
+        <span class="bar"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span><span class="num">${f.money.toFixed(0)}</span></div>
+      <div class="r2"><span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${f.strategy.label}</span></span>
+        <span class="stats">${f.games} games · coop ${(100 * cr).toFixed(0)}% · betrayed ${f.betrayed}</span></div>`;
   });
   const n = s.flies.length, cell = 26, pad = 24; const svg = d3.select('#tm').attr('width', pad + n * cell).attr('height', pad + n * cell);
   const color = d3.scaleDiverging([-1, 0, 1], (t) => d3.interpolateRgbBasis([DEFECT, '#1a1d24', COOP])(t)).clamp(true);
@@ -154,6 +153,7 @@ function render(s: Snapshot) {
     .attr('d', d3.line<{ round: number; coop: number }>().x((d) => x(d.round)).y((d) => y(d.coop)));
   tl.selectAll('g.ax').data([0]).join('g').attr('class', 'ax').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(6) as any);
   tl.selectAll('g.ay').data([0]).join('g').attr('class', 'ay').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('.0%')) as any);
-  document.getElementById('lg')!.textContent = s.last.slice().reverse().map((g) =>
-    `r${String(g.round).padStart(4)}  F${g.a + 1} ${g.ca ? 'C' : 'D'} (${g.pcA.toFixed(2)})  vs  F${g.b + 1} ${g.cb ? 'C' : 'D'} (${g.pcB.toFixed(2)})   → ${g.pa}/${g.pb}`).join('\n');
+  const ch = (c: boolean, p: number) => `<span class="${c ? 'c' : 'd'}" title="p(cooperate) = ${p.toFixed(2)}">${c ? 'C' : 'D'}</span>`;
+  document.getElementById('lg')!.innerHTML = s.last.slice().reverse().map((g) =>
+    `<div class="lrow"><span class="muted">r${g.round}</span><span>F${g.a + 1} ${ch(g.ca, g.pcA)}</span><span class="muted">vs</span><span>F${g.b + 1} ${ch(g.cb, g.pcB)}</span><span class="muted">→</span><span>${g.pa} / ${g.pb}</span></div>`).join('');
 }
