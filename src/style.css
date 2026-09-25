@@ -19,7 +19,7 @@ html, body, #app { height: 100%; }
 #arena canvas { width: 100% !important; height: 100% !important; display: block; }
 .side { width: 340px; flex: none; display: flex; flex-direction: column; overflow: auto; align-self: stretch; }
 .side > section { flex: none; } .side > .divider { margin: var(--mp-4) 0; }
-.side h2 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); letter-spacing: .04em; text-transform: uppercase; color: var(--c-fg-4); margin: 0 0 var(--mp-2); }
+.side h2 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); margin: 0 0 var(--mp-2); }
 .sub { font-size: var(--fs-sm); color: var(--c-fg-4); line-height: 1.4; margin: calc(-1 * var(--mp-1)) 0 var(--mp-25); }
 
 /* arena overlays */
@@ -47,26 +47,26 @@ html, body, #app { height: 100%; }
 
 /* parameters panel */
 #params { position: absolute; right: var(--gutter); top: 72px; z-index: 5; width: 440px; max-height: calc(100% - 88px); overflow: auto; padding: var(--island-pad); background: var(--c-surface); border-radius: var(--rd-island); box-shadow: var(--shadow-pop); }
-#params h2 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); letter-spacing: .04em; text-transform: uppercase; color: var(--c-fg-4); margin: var(--mp-4) 0 var(--mp-1); }
+#params h2 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); margin: var(--mp-4) 0 var(--mp-1); }
 #params .field > .input, #params .field > .select { width: 180px; }
 #params .field.compact { padding: var(--mp-05) 0; }
 #params .legend { margin-top: var(--mp-3); font-size: var(--fs-sm); line-height: 1.4; }
 #params .legend dl { margin: var(--mp-15) 0 0; display: grid; grid-template-columns: auto 1fr; gap: var(--mp-1) var(--mp-25); } #params .legend dt { color: var(--c-danger); white-space: nowrap; } #params .legend dd { margin: 0; color: var(--c-fg-4); }
 #params .btn-block { margin-top: var(--mp-4); }
-#advanced summary { cursor: pointer; font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: .04em; color: var(--c-fg-4); margin-top: var(--mp-4); }
+#advanced summary { cursor: pointer; font-size: var(--fs-sm); color: var(--c-fg-4); margin-top: var(--mp-4); }
 
 /* close-up caption */
 #caption { position: absolute; left: var(--island-pad); bottom: var(--island-pad); z-index: 4; width: 380px; padding: var(--island-pad); background: var(--c-island); border-radius: var(--rd-island); box-shadow: var(--shadow-pop); font-size: var(--fs-ui); line-height: 1.45; }
 .cap-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--mp-3); } .cap-name { font-size: var(--fs-xl); font-weight: var(--fw-bold); } .cap-strat { display: inline-flex; align-items: center; gap: var(--mp-15); white-space: nowrap; }
 .cap-stats { margin-top: 2px; font-variant-numeric: tabular-nums; }
-.cap-title { margin: var(--mp-25) 0 var(--mp-1); font-size: var(--fs-sm); font-weight: var(--fw-semibold); letter-spacing: .04em; text-transform: uppercase; color: var(--c-fg-4); }
+.cap-title { margin: var(--mp-25) 0 var(--mp-1); font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); }
 .cap-row { display: grid; grid-template-columns: 6.5em 1fr; gap: var(--mp-2); padding: 1px 0; } .cap-k { color: var(--c-fg-4); } .cap-v .c { color: var(--coop); } .cap-v .d { color: var(--defect); }
 .cap-v .pam { color: var(--coop); } .cap-v .ppl1 { color: var(--defect); }
 .cap-note { margin-top: var(--mp-15); font-size: var(--fs-sm); } .cap-btns { margin-top: var(--mp-25); }
 .tag.lesion { color: var(--c-danger); font-size: var(--fs-meta); font-weight: var(--fw-medium); }
 
 /* about */
-.modal h3 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); letter-spacing: .04em; text-transform: uppercase; color: var(--c-fg-4); margin: var(--mp-5) 0 var(--mp-15); }
+.modal h3 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); margin: var(--mp-5) 0 var(--mp-15); }
 .modal p { margin: var(--mp-15) 0; } .modal ul, .modal ol { margin: var(--mp-1) 0; padding-left: 20px; } .modal li { margin: var(--mp-1) 0; }
 .modal a { color: var(--c-accent); }
 .muted { color: var(--c-fg-4); }

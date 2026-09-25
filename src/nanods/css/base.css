@@ -21,7 +21,7 @@ textarea::placeholder, input::placeholder { color: rgba(160, 167, 180, .42); }
 .t-ui { font-size: var(--fs-ui); line-height: var(--lh-ui); }
 .t-meta { font-size: var(--fs-meta); color: var(--c-fg-2); }
 .t-caption { font-size: var(--fs-sm); color: var(--c-fg-4); }
-.t-label { font-size: var(--fs-sm); font-weight: var(--fw-semibold); letter-spacing: .04em; text-transform: uppercase; color: var(--c-fg-4); }
+.t-label { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); }   /* section label: small, muted, sentence case */
 .t-mono { font-family: var(--font-mono); font-size: var(--fs-meta); }
 .t-num { font-variant-numeric: tabular-nums; }
 .c-fg { color: var(--c-fg); } .c-fg-2 { color: var(--c-fg-2); } .c-fg-3 { color: var(--c-fg-3); } .c-fg-4 { color: var(--c-fg-4); }
