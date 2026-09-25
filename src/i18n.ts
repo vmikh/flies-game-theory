@@ -45,7 +45,7 @@ const D = {
   trustSub: { en: 'how the fly feels about each opponent<br>green approach, red avoid', ru: 'как муха относится к каждому сопернику<br>зелёный: тянет, красный: избегает' },
   cooperation: { en: 'Cooperation', ru: 'Сотрудничество' }, cooperationSub: { en: 'share of cooperative choices, last 200 decisions', ru: 'доля сотрудничества, последние 200 решений' },
   lastGames: { en: 'Last games', ru: 'Последние партии' },
-  stats: { en: '{g} games · coop {c}% · betrayed {b}', ru: '{g} партий · сотр. {c}% · предана {b}' },
+  stats: { en: 'coop {c}% · betrayed {b}', ru: 'сотр. {c}% · предана {b}' },
   out: { en: 'out', ru: 'выбыла' }, gameOver: { en: 'game over', ru: 'игра окончена' },
   cooperated: { en: 'cooperated', ru: 'сотрудничала' }, defected: { en: 'defected', ru: 'предала' }, pCoop: { en: 'p(cooperate)', ru: 'p(сотрудничать)' },
   // caption
