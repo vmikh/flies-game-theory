@@ -10,15 +10,15 @@ const a = (href: string, text: string) => `<a href="${href}" target="_blank" rel
 
 export function aboutHtml(lang: Lang): string {
   if (lang === 'ru') return `
-<p>Восемь мух играют друг с другом в повторяющуюся дилемму заключённого. Игра в них не запрограммирована: у каждой настоящий мозг из карты всех нейронов дрозофилы, муха сама решает, сотрудничать или предать, и учится только так, как учится живая муха, через дофамин.</p>
+<p>Восемь мух играют в повторяющуюся дилемму заключённого. Игра в них не запрограммирована: у каждой настоящий мозг из карты всех нейронов дрозофилы, и учится он только через дофамин, как у живой мухи.</p>
 <h3>Как это устроено</h3>
-<p>Память мухи устроена вокруг обоняния: её мозг умеет связать определённый запах с наградой или наказанием и потом тянуться к этому запаху или избегать его. Мы используем именно этот механизм.</p>
-<p><b>Соперник как запах.</b> Каждой мухе назначен свой набор обонятельных входных нейронов. Для остальных мух она «пахнет» именно так: когда муха A встречает муху B, в мозге A активируется набор нейронов B, точно так же, как активировался бы от настоящего запаха. Восемь наборов не пересекаются, поэтому мухи не путают друг друга.</p>
-<p><b>Решение.</b> Сигнал проходит через центр памяти мухи, грибовидное тело, и приходит на его выходные нейроны. Они делятся на две группы: одна у живой мухи запускает приближение, другая избегание. Какая группа ответила сильнее по сравнению с реакцией мухи на этого соперника до всякого опыта, та и решает: перевес приближения это сотрудничество, перевес избегания предательство. К незнакомцу муха равнодушна, и её первый ход близок к случайному.</p>
-<p><b>Выплата.</b> Если обе сотрудничали, каждая получает 3 очка. Предавшая сотрудничавшую получает 5, обманутая 0. Если обе предали, по 1. Хорошую выплату мозг получает так же, как живая муха получает сахар: включаются дофаминовые нейроны награды. Плохую так же, как удар током: включаются нейроны наказания. Соперник в этот момент всё ещё «пахнет», и мозг по своему обычному правилу обучения связывает одно с другим. В следующий раз этот соперник будет тянуть к себе или отталкивать.</p>
-<p><b>Слухи.</b> Мухи видят и чужие партии. Наблюдатель получает те же сигналы награды или наказания на каждого игрока, только ослабленные, в зависимости от того, как тот поступил. Так складывается репутация.</p>
-<p><b>Выбывание.</b> Муха, у которой кончились очки, выбывает, а её место занимает копия лидера вместе с его памятью.</p>
-<p><b>Стратегии.</b> Никто их не задаёт. После игры мы смотрим, как часто муха сотрудничает при первой встрече, после того как с ней поступили честно, и после того как её обманули. По этим трём числам ей даётся имя, например «око за око» или «всегда сотрудничает».</p>
+<p>Мозг мухи умеет одно: связать запах с наградой или наказанием и потом тянуться к нему или избегать. На этом всё и построено.</p>
+<p><b>Соперник как запах.</b> У каждой мухи свой набор обонятельных входных нейронов. При встрече A с B в мозге A активируется набор B, как от настоящего запаха. Наборы не пересекаются.</p>
+<p><b>Решение.</b> Сигнал идёт через центр памяти, грибовидное тело, к выходным нейронам двух групп: приближение и избегание. Перевес приближения это сотрудничество, избегания предательство. К незнакомцу муха равнодушна, первый ход почти случайный.</p>
+<p><b>Выплата.</b> Обе сотрудничали: по 3 очка. Предала сотрудничавшую: 5 и 0. Обе предали: по 1. Хорошая выплата включает дофаминовые нейроны награды, как сахар; плохая нейроны наказания, как удар током. Соперник в этот момент ещё «пахнет», и мозг связывает одно с другим.</p>
+<p><b>Слухи.</b> Наблюдатели получают те же сигналы на каждого игрока, только слабее. Так складывается репутация.</p>
+<p><b>Выбывание.</b> Муха без очков выбывает, её место занимает копия лидера с его памятью.</p>
+<p><b>Стратегии.</b> Никто их не задаёт. По частоте сотрудничества при первой встрече, после честности и после обмана муха получает имя: «око за око», «всегда сотрудничает» и так далее.</p>
 <h3>Под капотом</h3>
 <ul>
 <li><b>Проводка</b>: грибовидное тело правого полушария из коннектома ${a(L.malecns, 'Male CNS v1.0')} (HHMI Janelia FlyEM, Google Research, Кембридж, MRC LMB; CC-BY 4.0):
@@ -44,15 +44,15 @@ ${a(L.google, 'Анонс Google Research')}.</li>
 </ul>
 <p class="muted">Это модель, ограниченная коннектомом, а не запись живой мухи. Проводка, числа синапсов и знаки медиаторов это данные; правило обучения, считывание решения и перевод выплат в дофамин это модельные допущения.</p>`;
   return `
-<p>Eight flies play an iterated prisoner's dilemma against each other. Nothing about the game is programmed into them: each has a real brain from the map of every neuron in a fruit fly, decides for itself whether to cooperate or defect, and learns only the way a living fly learns, through dopamine.</p>
+<p>Eight flies play an iterated prisoner's dilemma. Nothing about the game is programmed into them: each has a real brain from the map of every neuron in a fruit fly, and it learns only through dopamine, like a living fly.</p>
 <h3>How it works</h3>
-<p>A fly's memory is built around smell: its brain can link a particular odour with reward or punishment and afterwards approach or avoid that odour. That is the mechanism we use.</p>
-<p><b>Opponent as odour.</b> Every fly is assigned its own set of olfactory input neurons. To the other flies, that is what it smells like: when fly A meets fly B, B's set of neurons is activated in A's brain, exactly as a real odour would activate it. The eight sets do not overlap, so flies do not confuse one another.</p>
-<p><b>Decision.</b> The signal passes through the fly's memory centre, the mushroom body, and reaches its output neurons. These come in two groups: in a living fly one drives approach, the other avoidance. Whichever group responds more strongly, compared with the fly's response to this opponent before any experience, decides: a lean toward approach is cooperation, a lean toward avoidance is defection. A stranger leaves the fly indifferent, so its first move is close to random.</p>
-<p><b>Payout.</b> If both cooperated, each gets 3 points. Defecting against a cooperator pays 5, the victim gets 0. If both defected, 1 each. A good payout reaches the brain the way sugar reaches a living fly: the reward dopamine neurons switch on. A bad one arrives like an electric shock: the punishment neurons switch on. The opponent still "smells" at that moment, and the brain, following its own ordinary learning rule, ties the two together. Next time, that opponent will attract or repel.</p>
-<p><b>Gossip.</b> Flies also watch the other games. An observer receives the same reward or punishment signals for each player, only weaker, depending on what the player did. That is how reputation forms.</p>
-<p><b>Dropping out.</b> A fly that runs out of points drops out, and a copy of the leader, memory included, takes its place.</p>
-<p><b>Strategies.</b> Nobody assigns them. After the game we look at how often a fly cooperates on a first meeting, after it was treated fairly, and after it was cheated. Those three numbers give it a name, such as "tit-for-tat" or "always cooperates".</p>
+<p>A fly's brain can do one thing: link an odour with reward or punishment, then approach or avoid it. Everything is built on that.</p>
+<p><b>Opponent as odour.</b> Each fly has its own set of olfactory input neurons. When A meets B, B's set is activated in A's brain, as a real odour would. The sets do not overlap.</p>
+<p><b>Decision.</b> The signal runs through the memory centre, the mushroom body, to two groups of output neurons: approach and avoidance. Approach wins: cooperate. Avoidance wins: defect. A stranger leaves the fly indifferent, so the first move is near random.</p>
+<p><b>Payout.</b> Both cooperate: 3 each. Defect against a cooperator: 5 and 0. Both defect: 1 each. A good payout switches on the reward dopamine neurons, like sugar; a bad one the punishment neurons, like an electric shock. The opponent still "smells" at that moment, and the brain ties the two together.</p>
+<p><b>Gossip.</b> Observers receive the same signals for each player, only weaker. That is how reputation forms.</p>
+<p><b>Dropping out.</b> A fly with no points left drops out; a copy of the leader, memory included, takes its place.</p>
+<p><b>Strategies.</b> Nobody assigns them. From how often a fly cooperates on a first meeting, after fair play and after being cheated, it gets a name: "tit-for-tat", "always cooperates" and so on.</p>
 <h3>Under the hood</h3>
 <ul>
 <li><b>Wiring</b>: the mushroom body of the right hemisphere from the ${a(L.malecns, 'Male CNS v1.0 connectome')} (HHMI Janelia FlyEM, Google Research, Cambridge, MRC LMB; CC-BY 4.0):
