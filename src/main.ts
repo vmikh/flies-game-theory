@@ -24,7 +24,7 @@ app.innerHTML = `
   <div class="prow"><label>payoffs <span class="hint">temptation / reward / punishment / sucker</span></label><select id="p-payoffPreset"><option value="5,3,1,0">classic 5 / 3 / 1 / 0</option><option value="5,4,1,0">generous 5 / 4 / 1 / 0</option><option value="8,3,1,0">harsh 8 / 3 / 1 / 0</option></select></div>
   <h2 style="margin-top:10px">Lesions <span class="muted">(per fly)</span></h2>
   <div id="lesions">${Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => `<div class="prow"><label>F${i + 1}</label><select id="p-lesion-${i}">${LESIONS.map((l) => `<option value="${l.id}" title="${l.hint}">${l.label}</option>`).join('')}</select></div>`).join('')}</div>
-  <details id="advanced"><summary>Advanced</summary>
+  <details id="advanced" hidden><summary>Advanced</summary>
     <div class="prow"><label>wiring</label><select id="p-shuffle"><option value="none">real connectome</option><option value="class">shuffled (control)</option></select></div>
     <div class="prow"><label>seed</label><span><input id="p-seed" type="number" value="1" class="short" style="width:5.5em"> <label><input id="p-randomSeed" type="checkbox" checked> new each restart</label></span></div>
     <div class="prow"><label>temperature</label><input id="p-temperature" type="number" step="0.05" min="0.05"></div>
@@ -76,6 +76,8 @@ function readParams(): typeof DEFAULT_GAME {
   return p;
 }
 fillParams(DEFAULT_GAME);
+// technical settings stay in the DOM (they feed readParams) but are shown only with ?advanced in the URL
+if (new URLSearchParams(location.search).has('advanced')) document.getElementById('advanced')!.hidden = false;
 const presetSel = $('p-payoffPreset') as unknown as HTMLSelectElement;
 presetSel.onchange = () => { const [T, R, P, S] = presetSel.value.split(',').map(Number); $('p-T').value = String(T); $('p-R').value = String(R); $('p-P').value = String(P); $('p-S').value = String(S); };
 document.getElementById('toggle-params')!.onclick = () => { const a = document.getElementById('params')!; a.hidden = !a.hidden; };
