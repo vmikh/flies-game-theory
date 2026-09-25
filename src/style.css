@@ -49,11 +49,11 @@ pre { margin: 0; font-size: 12px; color: var(--fg); }
 
 /* ranking */
 .row { padding: 6px 0 7px; border-bottom: 1px solid #161a22; font-size: 13px; } .row.dead { opacity: 0.45; }
-.row .r1 { display: grid; grid-template-columns: 2.2em 1fr 2.6em; gap: 10px; align-items: center; }
+.row .r1 { display: grid; grid-template-columns: 2.2em 1fr 2.4em; gap: 10px; align-items: center; }
 .row .r2 { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 4px; font-size: 11px; color: var(--muted); white-space: nowrap; }
 .row .name { font-weight: 600; white-space: nowrap; } .row .tag { font-weight: normal; font-size: 10px; color: var(--muted); margin-left: 8px; } .row .tag.lesion { color: #e4572e; }
 .row .bar { height: 8px; background: #161a22; border-radius: 2px; overflow: hidden; } .row .bar i { display: block; height: 100%; background: #4cc9a4; }
-.row .num { text-align: left; font-variant-numeric: tabular-nums; font-weight: 600; }
+.row .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
 .row .strat { display: inline-flex; align-items: center; gap: 6px; } .row .strat-label { color: var(--fg); }
 /* side panel text */
 .sub { font-size: 11px; color: var(--muted); margin: -4px 0 8px; line-height: 1.35; }
