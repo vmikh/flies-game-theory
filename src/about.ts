@@ -23,11 +23,9 @@ export function aboutHtml(lang: Lang): string {
 2 609 нейронов, 118 773 связи от 3 синапсов: проекционные нейроны, 2 045 клеток Кеньона, 49 MBON, 170 дофаминовых нейронов, APL, DPM. Знаки нейромедиаторов из предсказаний датасета.
 ${a(L.google, 'Анонс Google Research')}.</li>
 <li><b>Нейроны</b>: leaky integrate-and-fire, шаг 1 мс, 0.275 мВ на синапс, параметры по ${a(L.shiu, 'Shiu et al., Nature 2024')}. Каждая муха живёт в своём Web Worker; 400 мс мозгового времени считаются за ~8 мс.</li>
-<li><b>Кодирование запахов</b>: синапсы PN→PN и KC→KC отключены, вход на каждую клетку Кеньона нормирован; после этого запах зажигает 3–8 % клеток Кеньона, а коды разных запахов пересекаются на ~5 %.</li>
-<li><b>Обучение</b>: дофамин ослабляет синапсы клеток Кеньона на MBON в тех компартментах, куда проецируются активные дофаминовые нейроны. Карта компартментов взята прямо из коннектома
-(PPL1 → MBON11/12/14…, PAM → MBON01–07, 09…) и совпадает с ${a(L.aso, 'Aso et al., eLife 2014')}. Учит только внешний дофамин; память медленно стирается.</li>
-<li><b>Решение</b>: MBON компартментов PPL1 тянут к приближению, MBON компартментов PAM к избеганию. Счёт это изменение каждой популяции относительно наивного отклика мухи на этот запах:
-незнакомец это монетка, полностью наказанный запах избегается, полностью награждённый притягивает.</li>
+<li><b>Кодирование запахов</b>: запах приходит на 2 045 клеток Кеньона и зажигает 3–8 % из них, а наборы для разных запахов совпадают только на 5 %, то есть мозг надёжно отличает одного соперника от другого.</li>
+<li><b>Обучение</b>: память хранится в связях между клетками Кеньона и выходными нейронами MBON. Когда одновременно активен запах и дофаминовый нейрон, связи, ведущие к тем MBON, которые этот нейрон обслуживает, ослабевают. Какие нейроны какие MBON обслуживают, взято прямо из коннектома, и эта карта совпадает с известной из экспериментов (${a(L.aso, 'Aso et al., eLife 2014')}): нейроны наказания PPL1 обслуживают MBON приближения, нейроны награды PAM обслуживают MBON избегания. Поэтому наказание глушит тягу к запаху, а награда глушит отвращение.</li>
+<li><b>Решение</b>: перед игрой мы запоминаем, как каждый мозг отвечает на каждый запах без всякого опыта. Дальше сравниваем ответ группы приближения и группы избегания с этим начальным: незнакомый запах даёт ноль и решение как монетка, полностью наказанный запах даёт избегание, полностью награждённый притяжение.</li>
 </ul>
 <h3>Ссылки</h3>
 <ul>
@@ -50,11 +48,9 @@ ${a(L.google, 'Анонс Google Research')}.</li>
 2 609 neurons, 118 773 connections with ≥3 synapses: projection neurons, 2 045 Kenyon cells, 49 MBONs, 170 dopaminergic neurons, APL, DPM. Neurotransmitter signs from the dataset's predictions.
 ${a(L.google, 'Google Research announcement')}.</li>
 <li><b>Neurons</b>: leaky integrate-and-fire, 1 ms steps, 0.275 mV per synapse, parameters after ${a(L.shiu, 'Shiu et al., Nature 2024')}. Each fly runs in its own Web Worker; 400 ms of brain time takes ~8 ms.</li>
-<li><b>Odour coding</b>: PN→PN and KC→KC synapses are silenced and PN input per Kenyon cell is normalised; with that, each odour lights up 3–8 % of Kenyon cells and different odours overlap by ~5 %.</li>
-<li><b>Learning</b>: dopamine-gated depression of Kenyon cell → MBON synapses in the compartments the active dopamine neurons innervate. The compartment map comes straight from the connectome
-(PPL1 → MBON11/12/14…, PAM → MBON01–07, 09…), matching ${a(L.aso, 'Aso et al., eLife 2014')}. Only externally driven dopamine teaches; memories fade slowly.</li>
-<li><b>Decision</b>: MBONs in PPL1 compartments push toward approach, MBONs in PAM compartments toward avoidance. The score is the change of each population relative to the fly's naive response to that odour,
-so a stranger is a coin flip, a fully punished odour is avoided, a fully rewarded one approached.</li>
+<li><b>Odour coding</b>: an odour reaches 2 045 Kenyon cells and lights up 3–8 % of them; the sets for different odours overlap by only 5 %, so the brain reliably tells one opponent from another.</li>
+<li><b>Learning</b>: memory lives in the connections between Kenyon cells and the output neurons, the MBONs. When an odour and a dopamine neuron are active at the same time, the connections leading to the MBONs that neuron serves weaken. Which neurons serve which MBONs comes straight from the connectome, and the map matches the one known from experiments (${a(L.aso, 'Aso et al., eLife 2014')}): punishment neurons PPL1 serve the approach MBONs, reward neurons PAM serve the avoidance MBONs. So punishment mutes the pull toward an odour, and reward mutes the aversion.</li>
+<li><b>Decision</b>: before the game we record how each brain responds to each odour with no experience at all. From then on we compare the response of the approach group and the avoidance group with that baseline: an unfamiliar odour gives zero and a coin-flip decision, a fully punished odour gives avoidance, a fully rewarded one attraction.</li>
 </ul>
 <h3>Links</h3>
 <ul>
