@@ -41,9 +41,9 @@ app.innerHTML = `
   <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back">← Back <span class="muted">Esc</span></button></div></div></section>
   <aside class="side">
     <section id="board"><h2>Ranking</h2><div id="lb"></div></section>
-    <section id="trust"><h2>Trust</h2><div class="sub">row: how the fly feels about each opponent · green approach, red avoid</div><svg id="tm"></svg></section>
+    <section id="trust"><h2>Trust</h2><div class="sub">how the fly feels about each opponent<br>green approach, red avoid</div><svg id="tm"></svg></section>
     <section id="timeline"><h2>Cooperation</h2><div class="sub">share of cooperative choices, last 200 decisions</div><svg id="tl"></svg></section>
-    <section id="log"><h2>Last games</h2><div class="sub">green cooperated, red defected · payoff A/B</div><div id="lg"></div></section>
+    <section id="log"><h2>Last games</h2><div id="lg"></div></section>
   </aside>
 </main>`;
 const status = document.getElementById('status')!;
