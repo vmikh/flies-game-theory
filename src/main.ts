@@ -34,6 +34,7 @@ app.innerHTML = `
   <div class="prow"><label><span data-i18n="payoffs"></span><span class="hint" data-i18n="payoffsHint"></span></label><select id="p-payoffPreset"><option value="5,3,1,0" data-i18n="presetClassic"></option><option value="5,4,1,0" data-i18n="presetGenerous"></option><option value="8,3,1,0" data-i18n="presetHarsh"></option></select></div>
   <h2 style="margin-top:10px"><span data-i18n="lesions"></span> <span class="muted" data-i18n="perFly"></span></h2>
   <div id="lesions">${Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => `<div class="prow"><label>F${i + 1}</label><select id="p-lesion-${i}">${LESIONS.map((l) => `<option value="${l.id}"></option>`).join('')}</select></div>`).join('')}</div>
+  <div class="legend"><div class="muted" data-i18n="mutationsHint"></div><dl id="lesion-legend"></dl></div>
   <details id="advanced" hidden><summary data-i18n="advanced"></summary>
     <div class="prow"><label>wiring</label><select id="p-shuffle"><option value="none">real connectome</option><option value="class">shuffled (control)</option></select></div>
     <div class="prow"><label>seed</label><span><input id="p-seed" type="number" value="1" class="short" style="width:5.5em"> <label><input id="p-randomSeed" type="checkbox" checked> new each restart</label></span></div>
@@ -70,6 +71,7 @@ function applyStatic() {
   document.getElementById('toggle-about')!.title = t('aboutTitle');
   playBtn.textContent = playing ? t('pause') : t('play');
   document.querySelectorAll<HTMLSelectElement>('#lesions select').forEach((sel) => Array.from(sel.options).forEach((o) => { o.textContent = lesionLabel(o.value); o.title = lesionHint(o.value); }));
+  document.getElementById('lesion-legend')!.innerHTML = LESIONS.filter((l) => l.id !== 'none').map((l) => `<dt>${lesionLabel(l.id)}</dt><dd>${lesionHint(l.id)}</dd>`).join('');
   document.getElementById('about-body')!.innerHTML = aboutHtml(getLang());
   document.querySelectorAll<HTMLButtonElement>('#lang button').forEach((b) => b.classList.toggle('on', b.dataset.l === getLang()));
 }
