@@ -12,8 +12,7 @@ const app = document.getElementById('app')!;
 app.innerHTML = `
 <div class="left">
 <header class="topbar">
-  <h1 data-i18n="title"></h1>
-  <span class="status" id="status"></span>
+  <div class="brand"><h1 data-i18n="title"></h1><span class="status" id="status"></span></div>
   <span class="spacer"></span>
   <span class="seg" id="lang"><button data-l="en">EN</button><button data-l="ru">RU</button></span>
   <span class="seg" id="speed">${[1, 2, 5, 10, 20].map((x) => `<button data-x="${x}"${x === 1 ? ' class="on"' : ''}>${x}×</button>`).join('')}</span>
