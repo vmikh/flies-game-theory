@@ -28,11 +28,12 @@ html, body, #app { height: 100%; }
 .arena-label.dead { opacity: .35; text-decoration: line-through; }
 
 /* ranking */
-.row-fly { padding: var(--mp-2) 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-ui); } .row-fly:last-child { border-bottom: 0; } .row-fly.dead { opacity: .45; }
+.row-fly { padding: var(--mp-25) 0; border-bottom: 1px solid var(--c-line); font-size: var(--fs-ui); } .row-fly:last-child { border-bottom: 0; } .row-fly.dead { opacity: .45; }
+.row-fly .r0 { display: flex; justify-content: space-between; align-items: baseline; gap: var(--mp-25); margin-bottom: var(--mp-1); font-size: var(--fs-sm); color: var(--c-fg-4); white-space: nowrap; }
 .row-fly .r1 { display: grid; grid-template-columns: 2.2em 1fr 2.4em; gap: var(--mp-25); align-items: center; }
-.row-fly .r2 { display: flex; justify-content: space-between; align-items: center; gap: var(--mp-25); margin-top: var(--mp-1); font-size: var(--fs-sm); color: var(--c-fg-4); white-space: nowrap; }
+.row-fly .r2 { display: flex; align-items: center; margin-top: var(--mp-1); font-size: var(--fs-sm); color: var(--c-fg-4); white-space: nowrap; }
 .row-fly .name { font-weight: var(--fw-semibold); } .row-fly .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: var(--fw-semibold); }
-.row-fly .tag { font-size: var(--fs-xs); color: var(--c-fg-4); margin-left: var(--mp-2); } .row-fly .tag.lesion { color: var(--c-danger); } .row-fly .tag.out { color: var(--c-fg-4); }
+.row-fly .tag { font-size: var(--fs-sm); color: var(--c-fg-4); margin-left: var(--mp-2); } .row-fly .tag.lesion { color: var(--c-danger); } .row-fly .tag.out { color: var(--c-fg-4); }
 .row-fly .strat { display: inline-flex; align-items: center; gap: var(--mp-15); } .row-fly .strat-label { color: var(--c-fg-2); }
 .bars { display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; } .bars i { display: inline-block; width: 5px; background: var(--coop); border-radius: 1px; }
 .bars i:nth-child(1) { background: var(--c-fg-4); } .bars i:nth-child(3) { background: var(--mixed); }

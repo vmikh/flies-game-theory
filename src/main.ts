@@ -190,10 +190,10 @@ function render(s: Snapshot) {
   d3.select('#lb').selectAll('div.row-fly').data(flies, (d: any) => d.id).join('div').attr('class', (f) => `row-fly${f.alive ? '' : ' dead'}`).html((f) => {
     const cr = f.games ? f.coops / f.games : 0;
     const tags = `${!f.alive ? `<span class="tag out">${t('out')}</span>` : ''}${f.lesion !== 'none' ? `<span class="tag lesion">${lesionLabel(f.lesion)}</span>` : ''}`;
-    return `<div class="r1"><span class="name">${f.name}</span>
-        <span class="meter meter-ok"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span><span class="num">${f.money.toFixed(0)}</span></div>
-      ${f.games || tags ? `<div class="r2"><span class="strat">${f.games ? stratGlyph(f.strategy) + `<span class="strat-label">${strategyLabel(f.strategy.label)}</span>` : ''}${tags}</span>
-        ${f.games ? `<span class="stats">${t('stats', { g: f.games, c: (100 * cr).toFixed(0), b: f.betrayed })}</span>` : ''}</div>` : ''}`;
+    const top = f.games || tags ? `<div class="r0"><span class="stats">${f.games ? t('stats', { c: (100 * cr).toFixed(0), b: f.betrayed }) : ''}</span><span class="tags">${tags}</span></div>` : '';
+    const bottom = f.games ? `<div class="r2"><span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${strategyLabel(f.strategy.label)}</span></span></div>` : '';
+    return `${top}<div class="r1"><span class="name">${f.name}</span>
+        <span class="meter meter-ok"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span><span class="num">${f.money.toFixed(0)}</span></div>${bottom}`;
   });
   const n = s.flies.length, cell = 26, pad = 24; const svg = d3.select('#tm').attr('width', pad + n * cell).attr('height', pad + n * cell);
   const color = d3.scaleDiverging([-1, 0, 1], (x) => d3.interpolateRgbBasis([DEFECT, CELL_BG, COOP])(x)).clamp(true);
