@@ -4,7 +4,7 @@ const L = {
   malecns: 'https://male-cns.janelia.org/', google: 'https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/',
   shiu: 'https://www.nature.com/articles/s41586-024-07763-9', aso: 'https://elifesciences.org/articles/04577', three: 'https://threejs.org/', d3: 'https://d3js.org/',
   repo: 'https://github.com/vmikh/flies-game-theory', download: 'https://male-cns.janelia.org/download/', neuprint: 'https://neuprint.janelia.org/?dataset=male-cns%3Av1.0',
-  cell: 'https://www.cell.com/cell/fulltext/S0092-8674(26)00815-2', flywire: 'https://flywire.ai/',
+  cell: 'https://www.cell.com/cell/fulltext/S0092-8674(26)00815-2',
 };
 const a = (href: string, text: string) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 
@@ -24,7 +24,7 @@ export function aboutHtml(lang: Lang): string {
 <li><b>Проводка</b>: грибовидное тело правого полушария из коннектома ${a(L.malecns, 'Male CNS v1.0')} (HHMI Janelia FlyEM, Google Research, Кембридж, MRC LMB; CC-BY 4.0):
 2 609 нейронов, 118 773 связи от 3 синапсов: проекционные нейроны, 2 045 клеток Кеньона, 49 MBON, 170 дофаминовых нейронов, APL, DPM. Знаки нейромедиаторов из предсказаний датасета.
 ${a(L.google, 'Анонс Google Research')}.</li>
-<li><b>Нейроны</b>: leaky integrate-and-fire, шаг 1 мс, 0.275 мВ на синапс, параметры по ${a(L.shiu, 'Shiu et al., Nature 2024')} (модель всего мозга самки).
+<li><b>Нейроны</b>: leaky integrate-and-fire, шаг 1 мс, 0.275 мВ на синапс, параметры по ${a(L.shiu, 'Shiu et al., Nature 2024')}.
 Каждая муха живёт в своём Web Worker; 400 мс мозгового времени считаются за ~8 мс.</li>
 <li><b>Кодирование запахов</b>: синапсы PN→PN и KC→KC отключены, вход на каждую клетку Кеньона нормирован; после этого запах зажигает 3–8 % клеток Кеньона, а коды разных запахов пересекаются на ~5 %.</li>
 <li><b>Обучение</b>: дофамин ослабляет синапсы клеток Кеньона на MBON в тех компартментах, куда проецируются активные дофаминовые нейроны. Карта компартментов взята прямо из коннектома
@@ -39,7 +39,6 @@ ${a(L.google, 'Анонс Google Research')}.</li>
 <ul>
 <li>Исходный код: ${a(L.repo, 'github.com/vmikh/flies-game-theory')}</li>
 <li>Данные: ${a(L.download, 'загрузки Male CNS')} · ${a(L.neuprint, 'neuPrint')} · ${a(L.cell, 'Cell, 2026: половой диморфизм в полном коннектоме ЦНС самца')}</li>
-<li>Мозг самки для сравнения: ${a(L.flywire, 'FlyWire')}</li>
 <li>Теория игр: Р. Аксельрод, <i>Эволюция кооперации</i> (1984)</li>
 </ul>
 <p class="muted">Это модель, ограниченная коннектомом, а не запись живой мухи. Проводка, числа синапсов и знаки медиаторов это данные; правило обучения, считывание решения и перевод выплат в дофамин это модельные допущения.</p>`;
@@ -58,7 +57,7 @@ ${a(L.google, 'Анонс Google Research')}.</li>
 <li><b>Wiring</b>: the mushroom body of the right hemisphere from the ${a(L.malecns, 'Male CNS v1.0 connectome')} (HHMI Janelia FlyEM, Google Research, Cambridge, MRC LMB; CC-BY 4.0):
 2 609 neurons, 118 773 connections with ≥3 synapses: projection neurons, 2 045 Kenyon cells, 49 MBONs, 170 dopaminergic neurons, APL, DPM. Neurotransmitter signs from the dataset's predictions.
 ${a(L.google, 'Google Research announcement')}.</li>
-<li><b>Neurons</b>: leaky integrate-and-fire, 1 ms steps, 0.275 mV per synapse, parameters after ${a(L.shiu, 'Shiu et al., Nature 2024')} (whole-brain model of the female fly).
+<li><b>Neurons</b>: leaky integrate-and-fire, 1 ms steps, 0.275 mV per synapse, parameters after ${a(L.shiu, 'Shiu et al., Nature 2024')}.
 Each fly runs in its own Web Worker; 400 ms of brain time takes ~8 ms.</li>
 <li><b>Odour coding</b>: PN→PN and KC→KC synapses are silenced and PN input per Kenyon cell is normalised; with that, each odour lights up 3–8 % of Kenyon cells and different odours overlap by ~5 %.</li>
 <li><b>Learning</b>: dopamine-gated depression of Kenyon cell → MBON synapses in the compartments the active dopamine neurons innervate. The compartment map comes straight from the connectome
@@ -73,7 +72,6 @@ The specific connectome does the work.</li>
 <ul>
 <li>Source code: ${a(L.repo, 'github.com/vmikh/flies-game-theory')}</li>
 <li>Data: ${a(L.download, 'Male CNS downloads')} · ${a(L.neuprint, 'neuPrint')} · ${a(L.cell, 'Cell, 2026: sexual dimorphism in the complete male CNS connectome')}</li>
-<li>Female brain for comparison: ${a(L.flywire, 'FlyWire')}</li>
 <li>Game theory: R. Axelrod, <i>The Evolution of Cooperation</i> (1984)</li>
 </ul>
 <p class="muted">This is a model constrained by the connectome, not a recording of a fly. Wiring, synapse counts and transmitter signs are data; the learning rule, the decision readout and the mapping of payoffs to dopamine are modelling choices.</p>`;
