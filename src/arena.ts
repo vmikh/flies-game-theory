@@ -144,7 +144,7 @@ export class Arena {
   /** Close-up on brain b (null = back to the ring). Replays the brain's last movie slowly. */
   focus(b: number | null) {
     this.focused = b; this.flying = true; const c = this.controls;
-    if (b === null) { this.camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) }; c.enabled = false; }
+    if (b === null) { this.camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) }; c.enabled = false; c.minDistance = 0; c.maxDistance = Infinity; c.maxPolarAngle = Math.PI; }   // no clamps while flying home
     else { const a = this.anchors[b]; this.camGoal = { pos: a.clone().add(new THREE.Vector3(0, 0.95, 0.55)), target: a.clone() }; c.enabled = true; c.minDistance = 0.35; c.maxDistance = 2.4; c.maxPolarAngle = Math.PI; this.replay(b); }
     this.onFocus?.(b);
   }
