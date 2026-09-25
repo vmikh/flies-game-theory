@@ -19,7 +19,13 @@ try {
     if (m.method === 'Runtime.exceptionThrown') logs.push(`EXCEPTION: ${m.params.exceptionDetails.text} ${m.params.exceptionDetails.exception?.description ?? ''}`); };
   const send = (method: string, params: any = {}) => new Promise<any>((r) => { const i = ++id; pending.set(i, r); ws!.send(JSON.stringify({ id: i, method, params })); });
   await send('Runtime.enable'); await send('Page.enable');
-  await send('Page.navigate', { url: `http://localhost:5173/?autoplay=${rounds}&speed=${speed}${process.env.LANG_UI ? '&lang=' + process.env.LANG_UI : ''}` });
+  await send('Page.navigate', { url: `http://localhost:5173/?${process.env.LESION ? '' : `autoplay=${rounds}&`}speed=${speed}${process.env.LANG_UI ? '&lang=' + process.env.LANG_UI : ''}` });
+  if (process.env.LESION) { // wait for the first game to be ready, set a mutation on F1 and restart
+    for (let i = 0; i < 60; i++) { await sleep(500); const r = await send('Runtime.evaluate', { expression: "document.getElementById('status')?.textContent ?? ''" }); if (/(round|раунд) 0/.test(r.result.value)) break; }
+    await send('Runtime.evaluate', { expression: `document.getElementById('p-lesion-0').value = ${JSON.stringify(process.env.LESION)}; document.getElementById('p-randomSeed').checked = false; document.getElementById('restart').click();` });
+    for (let i = 0; i < 60; i++) { await sleep(500); const r = await send('Runtime.evaluate', { expression: "document.getElementById('status')?.textContent ?? ''" }); if (/(round|раунд) 0/.test(r.result.value)) break; }
+    await send('Runtime.evaluate', { expression: "document.getElementById('play').click()" });
+  }
   const t0 = Date.now(); let status = '';
   while (Date.now() - t0 < waitS * 1000) { await sleep(1000); const r = await send('Runtime.evaluate', { expression: "document.getElementById('status')?.textContent ?? ''" }); status = r.result.value; if (/(round|раунд) \d+/.test(status) && /Play|Pause|Играть|Пауза/.test((await send('Runtime.evaluate', { expression: "document.getElementById('play')?.textContent" })).result.value) && Number(status.match(/(?:round|раунд) (\d+)/)![1]) >= rounds) break; }
   console.log(`status after ${((Date.now() - t0) / 1000).toFixed(0)}s: ${status}`);
