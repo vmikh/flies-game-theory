@@ -7,52 +7,54 @@ import { Arena } from './arena.ts';
 import { LESIONS, type Lesion } from './backend.ts';
 import { t, getLang, setLang, onLang, strategyLabel, lesionLabel, lesionHint, type Lang } from './i18n.ts';
 import { aboutHtml } from './about.ts';
+import icons from './nanods/icons/nanods-icons.svg?raw';
+const ico = (id: string, cls = 'icon') => `<svg class="${cls}"><use href="#i-${id}"/></svg>`;
 
 const app = document.getElementById('app')!;
-app.innerHTML = `
-<header>
+app.innerHTML = `${icons}
+<header class="island topbar">
   <h1 data-i18n="title"></h1>
-  <span class="muted" id="status"></span>
+  <span class="status" id="status"></span>
   <span class="spacer"></span>
   <span class="seg" id="lang"><button data-l="en">EN</button><button data-l="ru">RU</button></span>
   <span class="seg" id="speed">${[1, 2, 5, 10, 20].map((x) => `<button data-x="${x}"${x === 1 ? ' class="on"' : ''}>${x}×</button>`).join('')}</span>
-  <button id="play"></button>
-  <button id="toggle-params" data-i18n="parameters"></button>
-  <button id="toggle-about" class="icon">i</button>
+  <button id="play" class="btn btn-light"></button>
+  <button id="toggle-params" class="btn">${ico('sliders')}<span data-i18n="parameters"></span></button>
+  <button id="toggle-about" class="btn btn-ghost btn-icon">${ico('info')}</button>
 </header>
-<div id="about" hidden>
-  <div class="about-card">
-    <div class="about-head"><h2 data-i18n="title"></h2><button id="about-close" class="icon">×</button></div>
+<div id="about" class="scrim" hidden>
+  <div class="modal">
+    <div class="modal-head"><h2 class="t-h3" data-i18n="title"></h2><button id="about-close" class="btn btn-ghost btn-icon btn-sm">${ico('x')}</button></div>
     <div id="about-body"></div>
   </div>
 </div>
 <aside id="params" hidden>
-  <div class="prow"><label><span data-i18n="gossip"></span><span class="hint" data-i18n-html="gossipHint"></span></label><input id="p-observeGain" type="number" step="0.05" min="0" max="2"></div>
-  <div class="prow"><label><span data-i18n="forgetting"></span><span class="hint" data-i18n-html="forgettingHint"></span></label><input id="p-forgetPerRound" type="number" step="0.01" min="0" max="1"></div>
-  <div class="prow"><label><span data-i18n="trustBias"></span><span class="hint" data-i18n-html="trustBiasHint"></span></label><input id="p-trustBias" type="number" step="0.05"></div>
-  <div class="prow"><label><span data-i18n="payoffs"></span><span class="hint" data-i18n="payoffsHint"></span></label><select id="p-payoffPreset"><option value="5,3,1,0" data-i18n="presetClassic"></option><option value="5,4,1,0" data-i18n="presetGenerous"></option><option value="8,3,1,0" data-i18n="presetHarsh"></option></select></div>
-  <h2 style="margin-top:10px" data-i18n="lesions"></h2>
-  <div id="lesions">${Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => `<div class="prow"><label>F${i + 1}</label><select id="p-lesion-${i}">${LESIONS.map((l) => `<option value="${l.id}"></option>`).join('')}</select></div>`).join('')}</div>
+  <div class="field"><label class="label"><span data-i18n="gossip"></span><span class="hint" data-i18n-html="gossipHint"></span></label><input class="input" id="p-observeGain" type="number" step="0.05" min="0" max="2"></div>
+  <div class="field"><label class="label"><span data-i18n="forgetting"></span><span class="hint" data-i18n-html="forgettingHint"></span></label><input class="input" id="p-forgetPerRound" type="number" step="0.01" min="0" max="1"></div>
+  <div class="field"><label class="label"><span data-i18n="trustBias"></span><span class="hint" data-i18n-html="trustBiasHint"></span></label><input class="input" id="p-trustBias" type="number" step="0.05"></div>
+  <div class="field"><label class="label"><span data-i18n="payoffs"></span><span class="hint" data-i18n="payoffsHint"></span></label><select class="select" id="p-payoffPreset"><option value="5,3,1,0" data-i18n="presetClassic"></option><option value="5,4,1,0" data-i18n="presetGenerous"></option><option value="8,3,1,0" data-i18n="presetHarsh"></option></select></div>
+  <h2 data-i18n="lesions"></h2>
+  <div id="lesions">${Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => `<div class="field compact"><label class="label">F${i + 1}</label><select class="select select-sm" id="p-lesion-${i}">${LESIONS.map((l) => `<option value="${l.id}"></option>`).join('')}</select></div>`).join('')}</div>
   <div class="legend"><div class="muted" data-i18n="mutationsHint"></div><dl id="lesion-legend"></dl></div>
   <details id="advanced" hidden><summary data-i18n="advanced"></summary>
-    <div class="prow"><label>wiring</label><select id="p-shuffle"><option value="none">real connectome</option><option value="class">shuffled (control)</option></select></div>
-    <div class="prow"><label>seed</label><span><input id="p-seed" type="number" value="1" class="short" style="width:5.5em"> <label><input id="p-randomSeed" type="checkbox" checked> new each restart</label></span></div>
-    <div class="prow"><label>temperature</label><input id="p-temperature" type="number" step="0.05" min="0.05"></div>
-    <div class="prow"><label>decision window, ms</label><input id="p-decisionMs" type="number" step="50" min="100"></div>
-    <div class="prow"><label>learning window, ms</label><input id="p-learnMs" type="number" step="50" min="50"></div>
-    <div class="prow"><label>ante per game</label><input id="p-ante" type="number" step="0.5"></div>
-    <div class="prow"><label>start money</label><input id="p-startMoney" type="number"></div>
-    <div class="prow"><label>payoff T / R / P / S</label><span><input id="p-T" type="number" class="short"> <input id="p-R" type="number" class="short"> <input id="p-P" type="number" class="short"> <input id="p-S" type="number" class="short"></span></div>
+    <div class="field compact"><label class="label">wiring</label><select class="select select-sm" id="p-shuffle"><option value="none">real connectome</option><option value="class">shuffled (control)</option></select></div>
+    <div class="field compact"><label class="label">seed</label><span class="row"><input class="input input-sm" id="p-seed" type="number" value="1" style="width:6em"> <label class="check"><input id="p-randomSeed" type="checkbox" checked> new each restart</label></span></div>
+    <div class="field compact"><label class="label">temperature</label><input class="input input-sm" id="p-temperature" type="number" step="0.05" min="0.05"></div>
+    <div class="field compact"><label class="label">decision window, ms</label><input class="input input-sm" id="p-decisionMs" type="number" step="50" min="100"></div>
+    <div class="field compact"><label class="label">learning window, ms</label><input class="input input-sm" id="p-learnMs" type="number" step="50" min="50"></div>
+    <div class="field compact"><label class="label">ante per game</label><input class="input input-sm" id="p-ante" type="number" step="0.5"></div>
+    <div class="field compact"><label class="label">start money</label><input class="input input-sm" id="p-startMoney" type="number"></div>
+    <div class="field compact"><label class="label">payoff T / R / P / S</label><span class="row"><input class="input input-sm" id="p-T" type="number" style="width:3.4em"><input class="input input-sm" id="p-R" type="number" style="width:3.4em"><input class="input input-sm" id="p-P" type="number" style="width:3.4em"><input class="input input-sm" id="p-S" type="number" style="width:3.4em"></span></div>
   </details>
-  <button id="restart" data-i18n="restart"></button>
+  <button id="restart" class="btn btn-primary btn-block" data-i18n="restart"></button>
 </aside>
 <main class="layout">
-  <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back"><span data-i18n="back"></span> <span class="muted">Esc</span></button></div></div></section>
+  <section id="arena" class="island"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn btn-sm"><span data-i18n="back"></span> <span class="kbd">Esc</span></button></div></div></section>
   <aside class="side">
-    <section id="board"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
-    <section id="trust"><h2 data-i18n="trust"></h2><div class="sub" data-i18n-html="trustSub"></div><svg id="tm"></svg></section>
-    <section id="timeline"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
-    <section id="log"><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
+    <section id="board" class="island"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
+    <section id="trust" class="island"><h2 data-i18n="trust"></h2><div class="sub" data-i18n-html="trustSub"></div><svg id="tm"></svg></section>
+    <section id="timeline" class="island"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
+    <section id="log" class="island"><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
   </aside>
 </main>`;
 const status = document.getElementById('status')!;
@@ -68,12 +70,13 @@ function applyStatic() {
   document.querySelectorAll<HTMLElement>('[data-i18n-html]').forEach((el) => (el.innerHTML = t(el.dataset.i18nHtml as any)));
   document.title = t('title');
   document.getElementById('toggle-about')!.title = t('aboutTitle');
-  playBtn.textContent = playing ? t('pause') : t('play');
+  setPlayLabel();
   document.querySelectorAll<HTMLSelectElement>('#lesions select').forEach((sel) => Array.from(sel.options).forEach((o) => { o.textContent = lesionLabel(o.value); o.title = lesionHint(o.value); }));
   document.getElementById('lesion-legend')!.innerHTML = LESIONS.filter((l) => l.id !== 'none').map((l) => `<dt>${lesionLabel(l.id)}</dt><dd>${lesionHint(l.id)}</dd>`).join('');
   document.getElementById('about-body')!.innerHTML = aboutHtml(getLang());
   document.querySelectorAll<HTMLButtonElement>('#lang button').forEach((b) => b.classList.toggle('on', b.dataset.l === getLang()));
 }
+function setPlayLabel() { playBtn.innerHTML = playing ? `${ico('pause')}${t('pause')}` : `${ico('play')}${t('play')}`; }
 document.querySelectorAll<HTMLButtonElement>('#lang button').forEach((b) => (b.onclick = () => setLang(b.dataset.l as Lang)));
 onLang(() => { applyStatic(); if (lastSnap) render(lastSnap); if (arenaRef && arenaRef.focused !== null) caption(arenaRef.focused); });
 applyStatic();
@@ -87,7 +90,7 @@ function stratGlyph(s: Snapshot['flies'][number]['strategy']) {
 let speedX = 1; const BASE_RPS = 0.5;
 const speedSeg = document.getElementById('speed')!;
 speedSeg.querySelectorAll('button').forEach((b) => (b.onclick = () => { speedX = Number(b.dataset.x); speedSeg.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b)); }));
-const COOP = '#4cc9a4', DEFECT = '#e4572e';
+const COOP = '#4CC9A4', DEFECT = '#E4572E', CELL_BG = '#232830';
 const targetRps = () => BASE_RPS * speedX;
 
 status.textContent = t('starting');
@@ -152,7 +155,7 @@ await startGame();
 // ?autoplay=N starts N rounds immediately (used for headless smoke tests)
 const auto = new URLSearchParams(location.search).get('autoplay');
 
-playBtn.onclick = () => { if (playing) { playing = false; playBtn.textContent = t('play'); return; } playing = true; playBtn.textContent = t('pause'); void loop(); };
+playBtn.onclick = () => { if (playing) { playing = false; setPlayLabel(); return; } playing = true; setPlayLabel(); void loop(); };
 async function loop() {
   while (playing && budget > 0) {
     const t0 = performance.now();
@@ -166,26 +169,26 @@ async function loop() {
     const wait = 1000 / targetRps() - (performance.now() - t0);
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   }
-  playing = false; playBtn.textContent = t('play'); budget = Infinity;
+  playing = false; setPlayLabel(); budget = Infinity;
 }
 if (auto) { $('p-randomSeed').checked = false; budget = Number(auto); speedX = Number(new URLSearchParams(location.search).get('speed') ?? 20); playBtn.click(); }
 
 function render(s: Snapshot) {
   lastSnap = s; arena.update(s); if (arena.focused !== null) caption(arena.focused);
   const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
-  d3.select('#lb').selectAll('div.row').data(flies, (d: any) => d.id).join('div').attr('class', (f) => `row${f.alive ? '' : ' dead'}`).html((f) => {
+  d3.select('#lb').selectAll('div.row-fly').data(flies, (d: any) => d.id).join('div').attr('class', (f) => `row-fly${f.alive ? '' : ' dead'}`).html((f) => {
     const cr = f.games ? f.coops / f.games : 0;
     const tags = `${!f.alive ? `<span class="tag out">${t('out')}</span>` : ''}${f.lesion !== 'none' ? `<span class="tag lesion">${lesionLabel(f.lesion)}</span>` : ''}`;
     return `<div class="r1"><span class="name">${f.name}</span>
-        <span class="bar"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span><span class="num">${f.money.toFixed(0)}</span></div>
+        <span class="meter meter-ok"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span><span class="num">${f.money.toFixed(0)}</span></div>
       <div class="r2"><span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${strategyLabel(f.strategy.label)}</span>${tags}</span>
         <span class="stats">${t('stats', { g: f.games, c: (100 * cr).toFixed(0), b: f.betrayed })}</span></div>`;
   });
   const n = s.flies.length, cell = 26, pad = 24; const svg = d3.select('#tm').attr('width', pad + n * cell).attr('height', pad + n * cell);
-  const color = d3.scaleDiverging([-1, 0, 1], (x) => d3.interpolateRgbBasis([DEFECT, '#1a1d24', COOP])(x)).clamp(true);
+  const color = d3.scaleDiverging([-1, 0, 1], (x) => d3.interpolateRgbBasis([DEFECT, CELL_BG, COOP])(x)).clamp(true);
   const cells = s.trust.flatMap((row, i) => row.map((v, j) => ({ i, j, v })));
   svg.selectAll('rect').data(cells).join('rect').attr('x', (d) => pad + d.j * cell).attr('y', (d) => pad + d.i * cell).attr('width', cell - 2).attr('height', cell - 2)
-    .attr('fill', (d) => (d.i === d.j ? '#0b0d12' : color(d.v))).select('title').remove();
+    .attr('fill', (d) => (d.i === d.j ? '#171A21' : color(d.v))).select('title').remove();
   svg.selectAll('rect').append('title').text((d: any) => `F${d.i + 1} → F${d.j + 1}: ${d.v.toFixed(2)}`);
   svg.selectAll('text.c').data(s.flies).join('text').attr('class', 'c lbl').attr('x', (_, j) => pad + j * cell + cell / 2 - 1).attr('y', pad - 8).attr('text-anchor', 'middle').text((f) => f.name);
   svg.selectAll('text.r').data(s.flies).join('text').attr('class', 'r lbl').attr('x', pad - 6).attr('y', (_, i) => pad + i * cell + cell / 2 + 4).attr('text-anchor', 'end').text((f) => f.name);

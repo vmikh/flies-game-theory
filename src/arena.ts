@@ -56,7 +56,7 @@ export class Arena {
     // HDR accumulation + tone map
     this.hdr = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, depthBuffer: false });
     this.toneMat = new THREE.ShaderMaterial({
-      uniforms: { tHdr: { value: this.hdr.texture }, uExposure: { value: 1.0 }, uBg: { value: new THREE.Color(0x0b0d12) } },
+      uniforms: { tHdr: { value: this.hdr.texture }, uExposure: { value: 1.0 }, uBg: { value: new THREE.Color(0x171a21) } },
       vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
       fragmentShader: `uniform sampler2D tHdr; uniform float uExposure; uniform vec3 uBg; varying vec2 vUv;
         void main() { vec3 h = texture2D(tHdr, vUv).rgb * uExposure; vec3 t = vec3(1.0) - exp(-h); gl_FragColor = vec4(uBg + t * (1.0 - uBg), 1.0); }`,

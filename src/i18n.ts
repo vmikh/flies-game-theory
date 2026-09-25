@@ -11,7 +11,7 @@ const D = {
   shuffledWiring: { en: 'shuffled wiring', ru: 'перемешанная проводка' },
   statusLine: { en: 'round {r} · {g} games · coop {c}%', ru: 'раунд {r} · {g} партий · сотрудничество {c}%' },
   roundsPerSec: { en: '{v} rounds/s', ru: '{v} раундов/с' },
-  play: { en: '▶ Play', ru: '▶ Играть' }, pause: { en: '❚❚ Pause', ru: '❚❚ Пауза' },
+  play: { en: 'Play', ru: 'Играть' }, pause: { en: 'Pause', ru: 'Пауза' },
   parameters: { en: 'Parameters', ru: 'Параметры' }, aboutTitle: { en: 'About this experiment', ru: 'Об эксперименте' },
   // panel
   experiment: { en: 'Experiment', ru: 'Эксперимент' }, restartApplies: { en: '(Restart applies)', ru: '(применяется после перезапуска)' },
@@ -55,7 +55,7 @@ const D = {
   decides: { en: 'decides', ru: 'решает' }, decCoop: { en: 'cooperates', ru: 'сотрудничает' }, decDefect: { en: 'defects', ru: 'предаёт' },
   payoff: { en: 'payoff', ru: 'выплата' }, reward: { en: 'reward · PAM dopamine', ru: 'награда · дофамин PAM' }, punishment: { en: 'punishment · PPL1 dopamine', ru: 'наказание · дофамин PPL1' },
   movieNote: { en: 'activity replay is recorded at 1× and 2× only', ru: 'активность записывается только на 1× и 2×' },
-  back: { en: '← Back', ru: '← Назад' },
+  back: { en: 'Back', ru: 'Назад' },
 } satisfies Record<string, Entry>;
 
 export type Key = keyof typeof D;

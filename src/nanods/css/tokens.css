@@ -1,0 +1,65 @@
+/* nanods 2.0 · design tokens
+   Extracted from the Studio design: dark, borderless surfaces in "islands", lime accent, 4px spacing grid. */
+:root {
+  /* spacing (4px grid; --mp-N = N × 4px, halves allowed) */
+  --mp-05: 2px; --mp-1: 4px; --mp-15: 6px; --mp-2: 8px; --mp-25: 10px; --mp-3: 12px; --mp-35: 14px;
+  --mp-4: 16px; --mp-5: 20px; --mp-6: 24px; --mp-8: 32px; --mp-10: 40px; --mp-12: 48px; --mp-16: 64px; --mp-20: 80px;
+
+  /* radii */
+  --rd-line: 2px; --rd-1: 6px; --rd-2: 10px; --rd-3: 14px; --rd-4: 18px; --rd-island: 24px; --rd-full: 999px;
+
+  /* motion */
+  --dur-1: .18s; --dur-2: .22s; --dur-3: .28s; --dur-4: .32s; --dur-5: .36s;
+  --ease: cubic-bezier(.2, .8, .3, 1);
+  --ease-press: cubic-bezier(.22, 1, .36, 1);
+
+  /* palette · surfaces (darkest → lightest) */
+  --c-bg: #0A0B0E;          /* page background, gaps between islands */
+  --c-bg-deep: #06070A;     /* scrims, video wells */
+  --c-island: #171A21;      /* content islands */
+  --c-surface: #1F232C;     /* menus, popovers, cards on an island */
+  --c-surface-2: #232830;   /* soft buttons, inputs, chips */
+  --c-surface-3: #2A2F39;   /* soft button hover */
+  --c-hover: #181B22;       /* ghost hover on an island */
+  --c-line: #1A1E26;        /* hairline dividers */
+  --c-line-2: #3A404C;      /* dashed drop-zones, stronger outline */
+
+  /* palette · text */
+  --c-fg: #F2F4F7;          /* primary */
+  --c-fg-2: #A0A7B4;        /* secondary */
+  --c-fg-3: #8A92A0;        /* tertiary, icons */
+  --c-fg-4: #6B7280;        /* muted, meta */
+  --c-fg-5: #4B515C;        /* disabled */
+  --c-on-light: #0A0B0E;    /* text on light / accent buttons */
+
+  /* palette · accent + states */
+  --c-accent: #D2FF3A;      /* lime */
+  --c-accent-hover: #E4FF7A;
+  --c-accent-soft: rgba(210, 255, 58, .14);
+  --c-light: #F2F4F7;       /* light (inverted) button */
+  --c-light-hover: #FFFFFF;
+  --c-danger: #FF8A9B;
+  --c-ok: #4CC9A4;
+  --c-warn: #D9B04A;
+
+  /* palette · glass */
+  --c-scrim: rgba(10, 11, 14, .62);
+  --c-scrim-strong: rgba(6, 7, 10, .6);
+  --c-glass: rgba(242, 244, 247, .22);
+  --c-glass-hover: rgba(242, 244, 247, .16);
+  --c-glass-dark: rgba(10, 11, 14, .55);
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, .4);
+  --blur: blur(14px);
+
+  /* typography */
+  --font: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+  --fs-xs: 10px; --fs-sm: 11px; --fs-meta: 12px; --fs-ui: 13px; --fs-body: 14px; --fs-lg: 15px; --fs-xl: 16px;
+  --fs-h3: 18px; --fs-h2: 22px; --fs-h1: 28px;
+  --lh-tight: 1.2; --lh-ui: 1.35; --lh-body: 1.5;
+  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+
+  /* controls */
+  --h-control: 36px; --h-control-lg: 40px; --h-control-sm: 28px; --h-row: 44px;
+  --gutter: var(--mp-2);        /* gap between islands */
+}
