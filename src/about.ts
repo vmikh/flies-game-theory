@@ -17,7 +17,7 @@ export function aboutHtml(lang: Lang): string {
 <p>Муха наблюдает и за чужими партиями: сотрудничество даёт положительный сигнал, а предательство даёт отрицательный. Так мнение о сопернике может появиться ещё до личной встречи. Силу влияния чужого опыта и скорость забывания можно менять в параметрах.</p>
 <h3>Как читать результаты</h3>
 <p>По умолчанию каждая партия стоит мухе два очка. Когда очки заканчиваются, муха выбывает. Состав игроков со временем меняется, и это тоже влияет на результат.</p>
-<p>В полной версии процент вверху показывает долю сотрудничества <b>среди всех решений с начала игры</b>, в том числе решений выбывших мух. График показывает <b>последние 200 решений</b>. Даже с одинаковыми настройками результаты могут различаться. По одному запуску нельзя судить, значима ли разница между настройками. Для этого проведите серию независимых прогонов каждого варианта и сравните средний результат и разброс.</p>
+<p>В полной версии процент вверху показывает долю сотрудничества <b>среди всех решений с начала игры</b>, в том числе решений выбывших мух. Даже с одинаковыми настройками результаты могут различаться. По одному запуску нельзя судить, значима ли разница между настройками. Для этого проведите серию независимых прогонов каждого варианта и сравните средний результат и разброс.</p>
 <h3>На чём основана модель</h3>
 <p>Схема нейронных связей взята из ${a(L.malecns, 'коннектома мозга дрозофилы Male CNS v1.0')}. Правила игры, перевод очков в сигналы обучения и перевод активности мозга в решение заданы авторами модели.</p>
 <details class="about-details"><summary>Технические подробности и источники</summary><div class="about-details-content">
@@ -37,7 +37,7 @@ export function aboutHtml(lang: Lang): string {
 <p>The fly also watches other games: cooperation gives it a positive signal, defection a negative one. It may have an opinion about an opponent before they have met. The effect of watching others and the rate of forgetting can be changed in the settings.</p>
 <h3>Reading the results</h3>
 <p>By default, each game costs a fly two points. A fly leaves when its points run out. The mix of players changes over time, and that affects the results.</p>
-<p>In the full version, the percentage at the top shows the share of cooperative choices <b>since the start of the game</b>, including choices made by flies that later left. The chart shows the <b>last 200 choices</b>. Results can differ even with the same settings. A single run cannot tell you whether a difference between settings is statistically meaningful. Run each set of settings several times and compare both the average and the spread of the results.</p>
+<p>In the full version, the percentage at the top shows the share of cooperative choices <b>since the start of the game</b>, including choices made by flies that later left. Results can differ even with the same settings. A single run cannot tell you whether a difference between settings is statistically meaningful. Run each set of settings several times and compare both the average and the spread of the results.</p>
 <h3>Where the model comes from</h3>
 <p>The neural wiring comes from the ${a(L.malecns, 'Male CNS v1.0 fruit fly connectome')}. The game rules and the ways points become learning signals and brain activity becomes a choice were set by the model's authors.</p>
 <details class="about-details"><summary>Technical details and sources</summary><div class="about-details-content">

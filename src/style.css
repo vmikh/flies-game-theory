@@ -9,9 +9,7 @@ html, body { height: 100%; min-width: 1350px; min-height: 700px; overflow: auto;
 
 /* top bar */
 .topbar { flex: none; height: 56px; display: flex; align-items: center; gap: var(--mp-3); padding: 0 var(--island-pad); background: transparent; }
-.topbar h1 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); white-space: nowrap; }
-.topbar .brand { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.topbar .status { font-size: var(--fs-meta); color: var(--c-fg-3); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.35em; }
+.topbar h1 { display: flex; align-items: center; align-self: stretch; font-size: var(--fs-lg); font-weight: var(--fw-semibold); white-space: nowrap; }
 .topbar .seg > button { min-width: 44px; }
 .topbar #lang { margin-left: var(--mp-2); }
 
@@ -21,9 +19,10 @@ html, body { height: 100%; min-width: 1350px; min-height: 700px; overflow: auto;
 #arena canvas { width: 100% !important; height: 100% !important; display: block; cursor: move; }
 #brain-loading { position: absolute; top: 50%; left: 50%; z-index: 5; transform: translate(-50%, -50%); max-width: calc(100% - 2 * var(--island-pad)); padding: var(--mp-3) var(--mp-4); border-radius: var(--rd-2); background: var(--c-surface-2); box-shadow: var(--shadow-pop); color: var(--c-fg); font-size: var(--fs-ui); font-weight: var(--fw-semibold); line-height: var(--lh-ui); text-align: center; white-space: nowrap; pointer-events: none; }
 .side { width: 340px; flex: none; display: flex; flex-direction: column; overflow: auto; align-self: stretch; }
+.side-status { flex: none; margin-bottom: var(--mp-6); color: #fff; font-size: var(--fs-xl); font-weight: var(--fw-semibold); line-height: 1.35; font-variant-numeric: tabular-nums; }
+.side-status .status-extra { margin-top: var(--mp-2); color: var(--c-fg-3); font-size: var(--fs-sm); font-weight: var(--fw-medium); }
 .side > section { flex: none; } .side > .divider { margin: var(--mp-4) 0; }
 .side h2 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--c-fg-4); margin: 0 0 var(--mp-2); }
-.sub { font-size: var(--fs-sm); color: var(--c-fg-4); line-height: 1.4; margin: calc(-1 * var(--mp-1)) 0 var(--mp-25); }
 
 /* arena overlays */
 .arena-label { position: absolute; left: 0; top: 0; pointer-events: none; font-size: var(--fs-meta); color: var(--c-fg-3); white-space: nowrap; will-change: transform; }

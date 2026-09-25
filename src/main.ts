@@ -15,7 +15,7 @@ const app = document.getElementById('app')!;
 app.innerHTML = `
 <div class="left">
 <header class="topbar">
-  <div class="brand"><h1 data-i18n="title"></h1><span class="status" id="status"></span></div>
+  <h1 data-i18n="title"></h1>
   <span class="spacer"></span>
   <span class="seg" id="speed">${[1, 2, 5, 10, 20].map((x) => `<button data-x="${x}"${x === 1 ? ' class="on"' : ''}>${x}×</button>`).join('')}</span>
   <button id="play" class="btn btn-primary"></button>
@@ -57,15 +57,19 @@ app.innerHTML = `
 </main>
 </div>
   <aside class="side island island-pad">
+    <div class="side-status" id="status" hidden><div id="status-round"></div><div id="status-cooperative"></div><div class="status-extra" id="status-extra" hidden></div></div>
     <section id="board"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
     <hr class="divider">
-    <section id="trust"><h2 data-i18n="trust"></h2><div class="sub" data-i18n-html="trustSub"></div><svg id="tm"></svg></section>
+    <section id="trust"><h2 data-i18n="trust"></h2><svg id="tm"></svg></section>
     <hr class="divider">
-    <section id="timeline"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
+    <section id="timeline"><h2 data-i18n="cooperation"></h2><svg id="tl"></svg></section>
     <hr class="divider" id="log-divider" hidden>
     <section id="log" hidden><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
   </aside>`;
 const status = document.getElementById('status')!;
+const statusRound = document.getElementById('status-round')!;
+const statusCooperative = document.getElementById('status-cooperative')!;
+const statusExtra = document.getElementById('status-extra')!;
 const brainLoading = document.getElementById('brain-loading')!;
 const playBtn = document.getElementById('play') as HTMLButtonElement;
 const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
@@ -79,15 +83,18 @@ let arenaRef: Arena | null = null;
 let loadingStatus: { key: Key; vars: Record<string, string | number> } = { key: 'starting', vars: {} };
 function showLoading(key: Key, vars: Record<string, string | number> = {}) {
   loadingStatus = { key, vars };
-  status.textContent = '';
+  status.hidden = true;
   brainLoading.textContent = t(key, vars);
   brainLoading.hidden = false;
 }
 function renderStatus(s: Snapshot) {
   brainLoading.hidden = true;
-  status.textContent = t('statusLine', { r: s.round, c: (100 * s.coopRate).toFixed(0) })
-    + (currentShuffle === 'none' ? '' : ` · ${t('shuffledWiring')}`)
-    + (s.flies.filter((f) => f.alive).length < 2 ? ` · ${t('gameOver')}` : '');
+  statusRound.textContent = t('statusRound', { r: s.round });
+  statusCooperative.textContent = t('statusCooperative', { c: (100 * s.coopRate).toFixed(0) });
+  const extra = [currentShuffle !== 'none' ? t('shuffledWiring') : '', s.flies.filter((f) => f.alive).length < 2 ? t('gameOver') : ''].filter(Boolean);
+  statusExtra.textContent = extra.join(' · ');
+  statusExtra.hidden = extra.length === 0;
+  status.hidden = false;
 }
 
 /** Write every static string for the current language. */
