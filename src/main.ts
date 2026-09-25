@@ -7,24 +7,22 @@ import { Arena } from './arena.ts';
 import { LESIONS, type Lesion } from './backend.ts';
 import { t, getLang, setLang, onLang, strategyLabel, lesionLabel, lesionHint, type Lang } from './i18n.ts';
 import { aboutHtml } from './about.ts';
-import icons from './nanods/icons/nanods-icons.svg?raw';
-const ico = (id: string, cls = 'icon') => `<svg class="${cls}"><use href="#i-${id}"/></svg>`;
 
 const app = document.getElementById('app')!;
-app.innerHTML = `${icons}
+app.innerHTML = `
 <header class="island topbar">
   <h1 data-i18n="title"></h1>
   <span class="status" id="status"></span>
   <span class="spacer"></span>
   <span class="seg" id="lang"><button data-l="en">EN</button><button data-l="ru">RU</button></span>
   <span class="seg" id="speed">${[1, 2, 5, 10, 20].map((x) => `<button data-x="${x}"${x === 1 ? ' class="on"' : ''}>${x}×</button>`).join('')}</span>
-  <button id="play" class="btn btn-light"></button>
-  <button id="toggle-params" class="btn">${ico('sliders')}<span data-i18n="parameters"></span></button>
-  <button id="toggle-about" class="btn btn-ghost btn-icon">${ico('info')}</button>
+  <button id="play" class="btn btn-primary"></button>
+  <button id="toggle-params" class="btn" data-i18n="parameters"></button>
+  <button id="toggle-about" class="btn" data-i18n="about"></button>
 </header>
 <div id="about" class="scrim" hidden>
   <div class="modal">
-    <div class="modal-head"><h2 class="t-h3" data-i18n="title"></h2><button id="about-close" class="btn btn-ghost btn-icon btn-sm">${ico('x')}</button></div>
+    <div class="modal-head"><h2 class="t-h3" data-i18n="title"></h2><button id="about-close" class="btn btn-sm" data-i18n="close"></button></div>
     <div id="about-body"></div>
   </div>
 </div>
@@ -51,10 +49,10 @@ app.innerHTML = `${icons}
 <main class="layout">
   <section id="arena" class="island"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn btn-sm"><span data-i18n="back"></span> <span class="kbd">Esc</span></button></div></div></section>
   <aside class="side">
-    <section id="board" class="island"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
-    <section id="trust" class="island"><h2 data-i18n="trust"></h2><div class="sub" data-i18n-html="trustSub"></div><svg id="tm"></svg></section>
-    <section id="timeline" class="island"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
-    <section id="log" class="island"><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
+    <section id="board" class="island island-pad"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
+    <section id="trust" class="island island-pad"><h2 data-i18n="trust"></h2><div class="sub" data-i18n-html="trustSub"></div><svg id="tm"></svg></section>
+    <section id="timeline" class="island island-pad"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
+    <section id="log" class="island island-pad"><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
   </aside>
 </main>`;
 const status = document.getElementById('status')!;
@@ -76,7 +74,7 @@ function applyStatic() {
   document.getElementById('about-body')!.innerHTML = aboutHtml(getLang());
   document.querySelectorAll<HTMLButtonElement>('#lang button').forEach((b) => b.classList.toggle('on', b.dataset.l === getLang()));
 }
-function setPlayLabel() { playBtn.innerHTML = playing ? `${ico('pause')}${t('pause')}` : `${ico('play')}${t('play')}`; }
+function setPlayLabel() { playBtn.textContent = playing ? t('pause') : t('play'); }
 document.querySelectorAll<HTMLButtonElement>('#lang button').forEach((b) => (b.onclick = () => setLang(b.dataset.l as Lang)));
 onLang(() => { applyStatic(); if (lastSnap) render(lastSnap); if (arenaRef && arenaRef.focused !== null) caption(arenaRef.focused); });
 applyStatic();

@@ -12,7 +12,7 @@ const D = {
   statusLine: { en: 'round {r} · {g} games · coop {c}%', ru: 'раунд {r} · {g} партий · сотрудничество {c}%' },
   roundsPerSec: { en: '{v} rounds/s', ru: '{v} раундов/с' },
   play: { en: 'Play', ru: 'Играть' }, pause: { en: 'Pause', ru: 'Пауза' },
-  parameters: { en: 'Parameters', ru: 'Параметры' }, aboutTitle: { en: 'About this experiment', ru: 'Об эксперименте' },
+  parameters: { en: 'Parameters', ru: 'Параметры' }, aboutTitle: { en: 'About this experiment', ru: 'Об эксперименте' }, about: { en: 'About', ru: 'О проекте' }, close: { en: 'Close', ru: 'Закрыть' },
   // panel
   experiment: { en: 'Experiment', ru: 'Эксперимент' }, restartApplies: { en: '(Restart applies)', ru: '(применяется после перезапуска)' },
   gossip: { en: 'gossip', ru: 'слухи' },

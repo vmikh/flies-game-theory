@@ -1,5 +1,5 @@
 /* nanods 2.0 · design tokens
-   Extracted from the Studio design: dark, borderless surfaces in "islands", lime accent, 4px spacing grid. */
+   Dark, borderless surfaces in "islands", one accent, 4 px spacing grid. */
 :root {
   /* spacing (4px grid; --mp-N = N × 4px, halves allowed) */
   --mp-05: 2px; --mp-1: 4px; --mp-15: 6px; --mp-2: 8px; --mp-25: 10px; --mp-3: 12px; --mp-35: 14px;
@@ -62,4 +62,7 @@
   /* controls */
   --h-control: 36px; --h-control-lg: 40px; --h-control-sm: 28px; --h-row: 44px;
   --gutter: var(--mp-2);        /* gap between islands */
+  --island-pad: var(--mp-4);    /* 16 on small screens, 20 on medium, 24 on large (see layout.css) */
 }
+@media (min-width: 900px) { :root { --island-pad: var(--mp-5); } }
+@media (min-width: 1440px) { :root { --island-pad: var(--mp-6); } }

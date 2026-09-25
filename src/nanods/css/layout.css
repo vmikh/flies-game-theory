@@ -5,8 +5,9 @@
 .shell-side { width: 340px; flex: none; display: flex; flex-direction: column; gap: var(--gutter); }
 
 .island { background: var(--c-island); border-radius: var(--rd-island); position: relative; min-width: 0; min-height: 0; overflow: hidden; }
-.island-pad { padding: var(--mp-4); }
-.island-head { display: flex; align-items: center; gap: var(--mp-2); padding: var(--mp-35) var(--mp-4) 0; }
+.island-pad { padding: var(--island-pad); }   /* adaptive: 16 / 20 / 24 */
+.island-pad-s { padding: var(--mp-4); } .island-pad-m { padding: var(--mp-5); } .island-pad-l { padding: var(--mp-6); }
+.island-head { display: flex; align-items: center; gap: var(--mp-2); padding: var(--island-pad) var(--island-pad) 0; }
 .island-scroll { height: 100%; overflow: auto; }
 .island-fill { flex: 1; }
 .island-fade::before, .island-fade::after { content: ''; position: absolute; left: 0; right: 0; height: var(--h-row); pointer-events: none; z-index: 1; }
