@@ -2,8 +2,6 @@
 
 25 September 2026. 1,400 games: 14 settings × 100 seeds × 35 rounds.
 
-> The harsh-world and hostile-world sets use the 6/3/1/−1 preset that the site now ships (commit `6235036`). Their results on the earlier 5/3/1/−1 preset are kept for comparison in `data/old-harsh-5-3-1-m1/`.
-
 ## In 30 seconds
 
 **What pays for one fly, and what pays for the world**
@@ -28,11 +26,7 @@
 - **Mutant tournament.** Mutant slots are shuffled on every seed, so pairing order and odours are not tied to a mutation.
 - **Shuffled wiring was not run.** It has a known readout problem, see the README section "Hidden setting".
 
-**Time.** About 7 hours 45 minutes of wall-clock time.
-- 1,400 games took about 7 hours (25 September, 10:11–17:14).
-- Rerunning 200 games with the new harsh preset took 45 minutes (19:00–19:45).
-
-All 1,600 games add up to 61.7 hours of run time. Of that, 53.6 hours went to the 1,400 games in `data/`. A game took 2.3 minutes on average under load, about 35 seconds on its own. The pilot and the discarded first launch (about 20 minutes) are not counted.
+**Time.** About 7 hours 45 minutes of wall-clock time on 25 September. The 1,400 games add up to 53.6 hours of run time. A game took 2.3 minutes on average under load, about 35 seconds on its own. The pilot and a discarded first launch (about 20 minutes) are not counted.
 
 ### Settings
 
@@ -69,7 +63,7 @@ Unless noted, everything is at the defaults: gossip 0.1, forgetting 0.05, trust 
 1. **Tit-for-tat is built into the rules.** The sign of dopamine always matches the opponent's move. T and R (the opponent cooperated) are rewarded, S and P (the opponent defected) are punished. A fly learns whether an opponent is good or bad for it, not whether defecting pays. It cannot learn to exploit others.
 2. **Learning itself pushes flies towards cooperation, to about 57%.** This holds in every set with learning, while the control stays at 50%. It looks like a property of the model rather than a choice by the flies.
 3. **The trust knob outweighs the brain.** It moves cooperation by ±25 pp. Learning changes behaviour by 3 to 23 pp.
-4. **The brain barely feels the payoffs.** The dopamine signal is scaled by T and R and clipped at ±1. The 5/3/1/−1 preset sent exactly the same signals as the classic one, and 94 of 100 games matched round for round. It was replaced by 6/3/1/−1 (commit `6235036`), where the reward for mutual cooperation is weaker, 0.5 instead of 0.6. The brain does tell this preset apart: 31 of 100 games diverge from the classic one. Average behaviour still does not move, just as in the generous world. Payoffs change who ends up with the money, not how the flies play.
+4. **The brain barely feels the payoffs.** The dopamine signal is scaled by T and R and clipped at ±1, so many payoff matrices send the brain the same signals. The harsh preset is chosen so that the brain does tell it apart: the reward for mutual cooperation drops to 0.5 from 0.6, and 31 of 100 games diverge from the defaults. Average behaviour still does not move, just as in the generous world. Payoffs change who ends up with the money, not how the flies play.
 5. **Strategy labels are unreliable.** A third of the flies without learning still get a meaningful label, and 14% of them are called forgiving tit-for-tat.
 6. **35 rounds, while the site runs forever.** Without forgetting, 12% of synapses already sit at the minimum, and that share will grow.
 7. **Bankruptcies barely distort the percentages.** They matter only in the hostile world and come late, around round 30.
@@ -128,8 +122,6 @@ Cooperation is 57.5%, responsiveness 3.7 pp. 46 of 100 games match the defaults 
 
 The reward for mutual cooperation is weaker here, 0.5 instead of 0.6. 31 of 100 games diverge from the defaults, but average behaviour is the same. Total wealth is unchanged too, 350 against 351, because a pair earns the same total per game as with the classic payoffs. Money moves from trusting flies to defectors. A fly that always cooperates loses 6.6 coins against the average (4.3 at the defaults). The link between cooperating more and ending poorer is stronger: −0.40 against −0.32. Bankruptcies are rare, 3 in 100 games.
 
-For comparison, the brain could not tell the old 5/3/1/−1 preset from the classic one: 94 of 100 games matched round for round, and wealth was 282.
-
 ### 11. Pure memory (no forgetting, no gossip)
 **Without forgetting, a fly still responds well (18 pp), but less than with light forgetting (22.6 pp).**
 
@@ -144,8 +136,6 @@ Generous payoffs only multiply what cooperation earns. Defectors are barely rich
 **The most conflict-ridden setting: 28% cooperation, a bankruptcy in 53% of games, half the default wealth.**
 
 Behaviourally these are just wary flies: 47 of 100 games match round for round, and total wealth is the same, 178 against 177. The difference is who pays. Being the sucker costs 3 coins per game, so the few trusting flies go broke. There are 60 bankruptcies in 100 games, around round 30. Wary flies with classic payoffs go bankrupt in only 20% of games. The richest fly is almost always a defector (74 of 100).
-
-For comparison, the old 5/3/1/−1 preset had a bankruptcy in 73% of games and total wealth of 124: there, being cheated shrank the pair's total.
 
 ### 14. Mutant tournament
 **The fly without reward dopamine (PAM) wins: it defects more and is the richest fly in 48% of games.**
