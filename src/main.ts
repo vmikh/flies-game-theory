@@ -48,11 +48,14 @@ app.innerHTML = `
 </aside>
 <main class="layout">
   <section id="arena" class="island"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn btn-sm"><span data-i18n="back"></span> <span class="kbd">Esc</span></button></div></div></section>
-  <aside class="side">
-    <section id="board" class="island island-pad"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
-    <section id="trust" class="island island-pad"><h2 data-i18n="trust"></h2><div class="sub" data-i18n-html="trustSub"></div><svg id="tm"></svg></section>
-    <section id="timeline" class="island island-pad"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
-    <section id="log" class="island island-pad"><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
+  <aside class="side island island-pad">
+    <section id="board"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
+    <hr class="divider">
+    <section id="trust"><h2 data-i18n="trust"></h2><div class="sub" data-i18n-html="trustSub"></div><svg id="tm"></svg></section>
+    <hr class="divider">
+    <section id="timeline"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
+    <hr class="divider">
+    <section id="log"><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
   </aside>
 </main>`;
 const status = document.getElementById('status')!;
