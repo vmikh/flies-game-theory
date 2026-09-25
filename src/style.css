@@ -12,6 +12,7 @@ html, body, #app { height: 100%; }
 .topbar .brand { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .topbar .status { font-size: var(--fs-meta); color: var(--c-fg-3); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.35em; }
 .topbar .seg > button { min-width: 44px; }
+.topbar #lang { margin-right: var(--mp-2); }
 
 /* main area */
 .layout { flex: 1; display: flex; min-height: 0; }

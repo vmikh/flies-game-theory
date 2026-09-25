@@ -5,7 +5,7 @@ import { RemoteFly } from './remoteFly.ts';
 import type { ShuffleMode } from './shuffle.ts';
 import { Arena } from './arena.ts';
 import { LESIONS, type Lesion } from './backend.ts';
-import { t, getLang, setLang, onLang, strategyLabel, lesionLabel, lesionHint, type Lang } from './i18n.ts';
+import { t, getLang, setLang, onLang, strategyLabel, lesionLabel, lesionHint } from './i18n.ts';
 import { aboutHtml } from './about.ts';
 
 const app = document.getElementById('app')!;
@@ -14,7 +14,7 @@ app.innerHTML = `
 <header class="topbar">
   <div class="brand"><h1 data-i18n="title"></h1><span class="status" id="status"></span></div>
   <span class="spacer"></span>
-  <span class="seg" id="lang"><button data-l="en">EN</button><button data-l="ru">RU</button></span>
+  <button id="lang" class="btn btn-link"></button>
   <span class="seg" id="speed">${[1, 2, 5, 10, 20].map((x) => `<button data-x="${x}"${x === 1 ? ' class="on"' : ''}>${x}×</button>`).join('')}</span>
   <button id="play" class="btn btn-primary"></button>
   <button id="toggle-params" class="btn" data-i18n="parameters"></button>
@@ -79,10 +79,10 @@ function applyStatic() {
   document.querySelectorAll<HTMLSelectElement>('#lesions select').forEach((sel) => Array.from(sel.options).forEach((o) => { o.textContent = lesionLabel(o.value); o.title = lesionHint(o.value); }));
   document.getElementById('lesion-legend')!.innerHTML = LESIONS.filter((l) => l.id !== 'none').map((l) => `<dt>${lesionLabel(l.id)}</dt><dd>${lesionHint(l.id)}</dd>`).join('');
   document.getElementById('about-body')!.innerHTML = aboutHtml(getLang());
-  document.querySelectorAll<HTMLButtonElement>('#lang button').forEach((b) => b.classList.toggle('on', b.dataset.l === getLang()));
+  document.getElementById('lang')!.textContent = getLang() === 'ru' ? 'EN' : 'RU';   // the link names the other language
 }
 function setPlayLabel() { playBtn.textContent = playing ? t('pause') : t('play'); }
-document.querySelectorAll<HTMLButtonElement>('#lang button').forEach((b) => (b.onclick = () => setLang(b.dataset.l as Lang)));
+document.getElementById('lang')!.onclick = () => setLang(getLang() === 'ru' ? 'en' : 'ru');
 onLang(() => { applyStatic(); if (lastSnap) render(lastSnap); if (arenaRef && arenaRef.focused !== null) caption(arenaRef.focused); });
 applyStatic();
 
