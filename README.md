@@ -7,14 +7,31 @@ simulated as leaky integrate-and-fire neurons with dopamine-gated plasticity.
 Opponents are presented as odors; payoffs drive reward (PAM) or punishment (PPL1) dopamine neurons;
 the fly's memory is literally its Kenyon cell → MBON synaptic weights.
 
-Static site, no backend.
+Static site, no backend. Eight flies, each in its own Web Worker; the arena renders the real EM skeletons with three.js.
+
+## Run
+
+```
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # static site in dist/
+```
+
+Headless checks (Node 24): `node --experimental-transform-types scripts/run_game.ts 40`,
+`scripts/control.ts` (shuffled-wiring control), `scripts/lesion_test.ts noPPL1`, `scripts/smoke.ts` (headless Chrome).
+
+## Deploy
+
+Vercel: import the GitHub repo, framework preset "Vite", no environment variables needed (`vercel.json` sets the build and caching).
+`public/data/` holds the packed circuit (0.8 MB) and skeletons (11 MB, ~3.4 MB compressed); both are committed.
 
 ## Layout
 
 - `scripts/extract_mb.py` – pull the right-hemisphere mushroom body (PN, KC, MBON, DAN, APL, DPM) out of the 1.1 GB connectome.
 - `scripts/export_web.py` – pack it into `public/data/mb_R.{bin,json}` (~0.8 MB).
 - `scripts/proto_lif.py`, `scripts/calib.py` – Python prototypes of the simulator used to calibrate parameters.
-- `src/` – the web app (Vite + TypeScript, three.js, d3).
+- `scripts/pack_skeletons.py` – simplify the SWC skeletons into `public/data/skel_R.{bin,json}`.
+- `src/sim.ts` LIF simulator · `src/game.ts` the iterated prisoner's dilemma · `src/backend.ts`, `src/fly.worker.ts` brains in workers · `src/arena.ts` three.js view · `src/main.ts` UI.
 
 ## Data
 

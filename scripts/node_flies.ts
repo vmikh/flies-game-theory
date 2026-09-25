@@ -9,6 +9,6 @@ export function loadCircuit(): Circuit {
 }
 export function makeGame(c: Circuit, over: Partial<GameParams> = {}) {
   const p: GameParams = { ...DEFAULT_GAME, ...over, sim: { ...DEFAULT_GAME.sim, ...(over.sim ?? {}) } };
-  return Game.create(c, p, (id, seed) => new LocalFly(c, p.sim, seed));
+  return Game.create(c, p, (id, seed, lesion) => new LocalFly(c, p.sim, seed, lesion));
 }
 export const localSim = (g: Game, i: number) => (g.flies[i].be as LocalFly).sim;

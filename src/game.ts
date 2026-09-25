@@ -6,7 +6,7 @@
  */
 import type { Circuit } from './circuit.ts';
 import { DEFAULT_PARAMS, mulberry32, type SimParams } from './sim.ts';
-import type { FlyBackend, Frames, DanPop } from './backend.ts';
+import type { FlyBackend, Frames, DanPop, Lesion } from './backend.ts';
 
 export interface GameParams {
   nFlies: number;
@@ -25,6 +25,7 @@ export interface GameParams {
   minDanInput: number;        // MBONs with less DAN input (synapses) get no valence
   forgetPerRound: number;     // plastic factors relax toward 1 by this fraction each round
   cloneJitter: number;
+  lesions: Lesion[];          // per fly index (missing = intact); clones inherit the slot's lesion
   sim: SimParams;
   seed: number;
 }
@@ -32,7 +33,7 @@ export interface GameParams {
 export const DEFAULT_GAME: GameParams = {
   nFlies: 8, glomPerOdor: 7, decisionMs: 600, learnMs: 400, observeMs: 300, observeGain: 0.1,
   temperature: 0.5, trustBias: 0, payoff: { T: 5, R: 3, P: 1, S: 0 }, ante: 2, startMoney: 30,
-  baselineReps: 6, responsiveMin: 3, minDanInput: 20, forgetPerRound: 0.05, cloneJitter: 0.1,
+  baselineReps: 6, responsiveMin: 3, minDanInput: 20, forgetPerRound: 0.05, cloneJitter: 0.1, lesions: [],
   sim: DEFAULT_PARAMS, seed: 1,
 };
 
@@ -75,7 +76,7 @@ export interface GameRecord {
 
 export interface Snapshot {
   round: number; games: number; coopRate: number; recentCoopRate: number;
-  flies: { id: number; name: string; money: number; alive: boolean; lineage: number; games: number; coops: number; defects: number; betrayed: number; strategy: Strategy }[];
+  flies: { id: number; name: string; money: number; alive: boolean; lineage: number; games: number; coops: number; defects: number; betrayed: number; strategy: Strategy; lesion: Lesion }[];
   trust: number[][];
   activity: (Uint16Array | null)[];   // per fly, whole-circuit spike counts of its last decision
   movies: (FlyMovie | null)[];
@@ -83,7 +84,7 @@ export interface Snapshot {
   last: GameRecord[];
 }
 
-export type BackendFactory = (id: number, seed: number) => Promise<FlyBackend> | FlyBackend;
+export type BackendFactory = (id: number, seed: number, lesion: Lesion) => Promise<FlyBackend> | FlyBackend;
 
 export class Game {
   flies: Fly[] = []; odors: number[][] = []; round = 0; gamesPlayed = 0; coopTotal = 0; recent: boolean[] = [];
@@ -125,7 +126,7 @@ export class Game {
   }
 
   private async newFly(id: number, lineage: number, born: number, cloneOf?: Fly): Promise<Fly> {
-    const be = await this.makeBackend(id, this.p.seed * 1000 + id * 17 + born);
+    const lesion = this.p.lesions[id] ?? 'none'; const be = await this.makeBackend(id, this.p.seed * 1000 + id * 17 + born, lesion);
     const f: Fly = { id, name: `F${id + 1}`, be, money: this.p.startMoney, alive: true, lineage, born,
       base: new Float32Array(this.p.nFlies * this.nMbon), trust: new Float32Array(this.p.nFlies), activity: null, lastOpp: -1, movie: null, games: 0, coops: 0, defects: 0, betrayed: 0,
       lastOppAct: new Int8Array(this.p.nFlies).fill(-1), strat: { nFirst: 0, cFirst: 0, nAfterC: 0, cAfterC: 0, nAfterD: 0, cAfterD: 0 } };
@@ -234,7 +235,7 @@ export class Game {
     return {
       round: this.round, games: this.gamesPlayed, coopRate: this.gamesPlayed ? this.coopTotal / (2 * this.gamesPlayed) : 0,
       recentCoopRate: this.recent.length ? this.recent.filter(Boolean).length / this.recent.length : 0,
-      flies: this.flies.map((f) => ({ id: f.id, name: f.name, money: f.money, alive: f.alive, lineage: f.lineage, games: f.games, coops: f.coops, defects: f.defects, betrayed: f.betrayed, strategy: classify(f.strat) })),
+      flies: this.flies.map((f) => ({ id: f.id, name: f.name, money: f.money, alive: f.alive, lineage: f.lineage, games: f.games, coops: f.coops, defects: f.defects, betrayed: f.betrayed, strategy: classify(f.strat), lesion: this.p.lesions[f.id] ?? 'none' })),
       trust: this.flies.map((f) => Array.from(f.trust)), activity: this.flies.map((f) => f.activity), movies: this.flies.map((f) => f.movie),
       pairs: [...this.pairStats.values()].map((p) => ({ a: p.a, b: p.b, games: p.games, outcome: p.sum / p.games, lastRound: p.lastRound })),
       last: this.log.slice(-Math.max(1, n)),

@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 import { Circuit } from './circuit.ts';
-import { LocalFly } from './backend.ts';
+import { LocalFly, type Lesion } from './backend.ts';
 import type { SimParams } from './sim.ts';
 import { shuffleCircuit, type ShuffleMode } from './shuffle.ts';
 
@@ -10,7 +10,7 @@ self.onmessage = async (e: MessageEvent<Req>) => {
   const { id, op, args } = e.data;
   try {
     let result: unknown = undefined;
-    if (op === 'init') { const [params, seed, shuffle, shuffleSeed] = args as [SimParams, number, ShuffleMode, number]; let c = await Circuit.load(); c = shuffleCircuit(c, shuffle, shuffleSeed); fly = new LocalFly(c, params, seed); }
+    if (op === 'init') { const [params, seed, shuffle, shuffleSeed, lesion] = args as [SimParams, number, ShuffleMode, number, Lesion]; let c = await Circuit.load(); c = shuffleCircuit(c, shuffle, shuffleSeed); fly = new LocalFly(c, params, seed, lesion ?? 'none'); }
     else if (!fly) throw new Error('not initialised');
     else if (op === 'counts') result = await fly.counts(args[0], args[1], args[2], args[3]);
     else if (op === 'teach') result = await fly.teach(args[0], args[1], args[2], args[3], args[4]);

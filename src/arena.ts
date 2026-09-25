@@ -117,7 +117,7 @@ export class Arena {
       e.mat.color.set(this.outcomeColor(p.outcome)); e.mat.linewidth = 0.5 + Math.min(6, p.games) * 0.25; e.mat.opacity = 0.16 + Math.min(1, p.games / 8) * 0.3;
       if (p.lastRound === s.round - 1) { const g = new LineGeometry(); g.setPositions([...this.anchors[p.a].toArray(), ...this.anchors[p.b].toArray()]); const mat = new LineMaterial({ color: this.outcomeColor(s.last.find((r) => (r.a === p.a && r.b === p.b) || (r.a === p.b && r.b === p.a))?.ca === undefined ? p.outcome : this.recOutcome(s.last.find((r) => (r.a === p.a && r.b === p.b) || (r.a === p.b && r.b === p.a))!)), linewidth: 2.2, transparent: true, opacity: 0.95, depthTest: false }); mat.resolution.copy(this.resolution); const line = new Line2(g, mat); this.graph.add(line); this.flashes.push({ obj: line, mat, born: now }); }
     }
-    for (let b = 0; b < this.nBrains; b++) { const f = s.flies[b]; this.labels[b].textContent = `${f.name} · ${f.money.toFixed(0)}`; this.labels[b].classList.toggle('dead', !f.alive); }
+    for (let b = 0; b < this.nBrains; b++) { const f = s.flies[b]; this.labels[b].textContent = `${f.name} · ${f.money.toFixed(0)}${this.tags[b] ? ' · ' + this.tags[b] : ''}`; this.labels[b].classList.toggle('dead', !f.alive); }
   }
   private recOutcome(r: { ca: boolean; cb: boolean }) { return r.ca && r.cb ? 1 : !r.ca && !r.cb ? -1 : 0; }
   private outcomeColor(o: number): THREE.Color { const c = new THREE.Color(); return o >= 0 ? c.set(MIXED).lerp(new THREE.Color(COOP), o) : c.set(MIXED).lerp(new THREE.Color(DEFECT), -o); }
@@ -146,7 +146,8 @@ export class Arena {
   }
   /** Restart the brain's last movie from the beginning. */
   replay(b: number) { const pb = this.playback[b]; if (pb) pb.t0 = performance.now(); else if (this.lastMovie[b]) this.playback[b] = { movie: this.lastMovie[b]!, t0: performance.now() }; }
-  lastMovie: (FlyMovie | null)[] = [];
+  lastMovie: (FlyMovie | null)[] = []; tags: string[] = [];
+  setTags(t: string[]) { this.tags = t.map((x) => (x === 'intact' ? '' : x)); }
 
   private loop = () => {
     this.raf = requestAnimationFrame(this.loop);

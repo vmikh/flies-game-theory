@@ -4,6 +4,7 @@ import { Game, DEFAULT_GAME, type Snapshot } from './game.ts';
 import { RemoteFly } from './remoteFly.ts';
 import type { ShuffleMode } from './shuffle.ts';
 import { Arena } from './arena.ts';
+import { LESIONS, type Lesion } from './backend.ts';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
@@ -29,6 +30,8 @@ app.innerHTML = `
   <div class="prow"><label>ante per game</label><input id="p-ante" type="number" step="0.5"></div>
   <div class="prow"><label>start money</label><input id="p-startMoney" type="number"></div>
   <div class="prow"><label>clone jitter</label><input id="p-cloneJitter" type="number" step="0.05" min="0"></div>
+  <h2 style="margin-top:10px">Lesions <span class="muted">(per fly)</span></h2>
+  <div id="lesions">${Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => `<div class="prow"><label>F${i + 1}</label><select id="p-lesion-${i}">${LESIONS.map((l) => `<option value="${l.id}" title="${l.hint}">${l.label}</option>`).join('')}</select></div>`).join('')}</div>
   <button id="restart">Restart with these parameters</button>
 </aside>
 <main class="layout">
@@ -66,6 +69,7 @@ function fillParams(p: typeof DEFAULT_GAME) { for (const k of NUM_FIELDS) $(`p-$
 function readParams(): typeof DEFAULT_GAME {
   const p: any = { ...DEFAULT_GAME, payoff: { ...DEFAULT_GAME.payoff } };
   for (const k of NUM_FIELDS) p[k] = Number($(`p-${k}`).value); for (const k of ['T', 'R', 'P', 'S'] as const) p.payoff[k] = Number($(`p-${k}`).value); p.seed = Number($('p-seed').value);
+  p.lesions = Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => $(`p-lesion-${i}`).value as Lesion);
   return p;
 }
 fillParams(DEFAULT_GAME);
@@ -77,7 +81,8 @@ async function startGame() {
   if ($('p-randomSeed').checked) $('p-seed').value = String(1 + Math.floor(Math.random() * 1e6));
   const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode;
   status.textContent = 'spawning ${DEFAULT_GAME.nFlies} brains…';
-  game = await Game.create(circuit, p, async (id, seed) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed); return f; }, (m) => (status.textContent = m));
+  game = await Game.create(circuit, p, async (id, seed, lesion) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed, lesion); return f; }, (m) => (status.textContent = m));
+  arena.setTags(p.lesions.map((l) => LESIONS.find((x) => x.id === l)?.label ?? ''));
   render(game.snapshot()); status.textContent = `ready · seed ${p.seed}${shuffle === 'none' ? '' : ' · shuffled wiring'}`;
 }
 document.getElementById('restart')!.onclick = () => void startGame();
@@ -86,7 +91,7 @@ function caption(b: number) {
   const s = lastSnap; if (!s) return; const f = s.flies[b]; const m = s.movies[b];
   const rec = [...s.last].reverse().find((r) => r.a === b || r.b === b);
   const st = f.strategy; const pct = (v: number | null) => (v === null ? '?' : Math.round(100 * v) + '%');
-  let html = `<b>${f.name}</b> · ${f.money.toFixed(0)} money · ${f.games} games · cooperates ${f.games ? Math.round(100 * f.coops / f.games) : 0}% · <b>${st.label}</b> <span class="muted">(first meeting ${pct(st.trust)}, after C ${pct(st.reciprocity)}, after D ${pct(st.forgiveness)})</span>`;
+  let html = `<b>${f.name}</b>${f.lesion !== 'none' ? ` <span class="lesion">[${LESIONS.find((x) => x.id === f.lesion)?.label}: ${LESIONS.find((x) => x.id === f.lesion)?.hint}]</span>` : ''} · ${f.money.toFixed(0)} money · ${f.games} games · cooperates ${f.games ? Math.round(100 * f.coops / f.games) : 0}% · <b>${st.label}</b> <span class="muted">(first meeting ${pct(st.trust)}, after C ${pct(st.reciprocity)}, after D ${pct(st.forgiveness)})</span>`;
   if (rec) { const me = rec.a === b; const opp = me ? rec.b : rec.a; const myC = me ? rec.ca : rec.cb, oppC = me ? rec.cb : rec.ca, pay = me ? rec.pa : rec.pb, sc = me ? rec.scoreA : rec.scoreB, pc = me ? rec.pcA : rec.pcB;
     html += `<br>Last game, round ${rec.round}: smells <b>F${opp + 1}</b> → approach−avoid <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b> → cooperates with p=${pc.toFixed(2)} → <b>${myC ? 'COOPERATES' : 'DEFECTS'}</b>; F${opp + 1} ${oppC ? 'cooperates' : 'defects'} → payoff <b>${pay}</b> → ${pay >= 3 ? '<span class="pam">reward (PAM dopamine)</span>' : '<span class="ppl1">punishment (PPL1 dopamine)</span>'}`; }
   if (m && !m.decision) html += `<br><span class="muted">activity movie is recorded at 1× and 2× only</span>`;
@@ -122,7 +127,7 @@ function render(s: Snapshot) {
   const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
   d3.select('#lb').selectAll('div.row').data(flies, (d: any) => d.id).join('div').attr('class', 'row').html((f) => {
     const cr = f.games ? f.coops / f.games : 0;
-    return `<span class="name">${f.name}${f.lineage !== f.id ? `<sub>←F${f.lineage + 1}</sub>` : ''}</span>
+    return `<span class="name">${f.name}${f.lineage !== f.id ? `<sub>←F${f.lineage + 1}</sub>` : ''}${f.lesion !== 'none' ? `<sub class="lesion">${LESIONS.find((x) => x.id === f.lesion)?.label}</sub>` : ''}</span>
       <span class="bar"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span>
       <span class="num">${f.money.toFixed(0)}</span>
       <span class="muted small">${f.games} games · coop ${(100 * cr).toFixed(0)}% · betrayed ${f.betrayed}</span>

@@ -45,6 +45,7 @@ export class MBSim {
   readonly kcRange: [number, number]; readonly mbonRange: [number, number]; readonly danRange: [number, number]; readonly pnRange: [number, number];
   readonly fired: Uint8Array;
   readonly rateCount: Uint32Array;   // spikes accumulated since last reset
+  readonly silenced: Uint8Array;     // lesioned neurons: held at rest, never fire
   private rng: () => number;
 
   constructor(readonly c: Circuit, readonly p: SimParams = DEFAULT_PARAMS, seed = 1) {
@@ -91,8 +92,11 @@ export class MBSim {
     for (let i = this.danRange[0]; i < this.danRange[1]; i++) for (let k = indptr[i]; k < indptr[i + 1]; k++) if (inR(indices[k], this.mbonRange)) this.comp[(i - this.danRange[0]) * nMbon + indices[k] - this.mbonRange[0]] += weights[k];
     for (let j = 0; j < nMbon; j++) { let s = 0; for (let d = 0; d < nDan; d++) s += this.comp[d * nMbon + j]; if (s > 0) for (let d = 0; d < nDan; d++) this.comp[d * nMbon + j] /= s; }
     this.v = new Float32Array(this.n).fill(p.vRest); this.I = new Float32Array(this.n); this.ref = new Float32Array(this.n);
-    this.trace = new Float32Array(this.kcRange[1] - this.kcRange[0]); this.fired = new Uint8Array(this.n); this.rateCount = new Uint32Array(this.n);
+    this.trace = new Float32Array(this.kcRange[1] - this.kcRange[0]); this.fired = new Uint8Array(this.n); this.rateCount = new Uint32Array(this.n); this.silenced = new Uint8Array(this.n);
   }
+
+  /** Lesion: the given neurons are held at rest forever. */
+  silence(ids: Iterable<number>) { for (const i of ids) this.silenced[i] = 1; }
 
   get nMbon() { return this.mbonRange[1] - this.mbonRange[0]; }
   get nDan() { return this.danRange[1] - this.danRange[0]; }
@@ -113,7 +117,9 @@ export class MBSim {
     if (driveDan) for (let a = 0; a < driveDan.length; a++) if (this.rng() < p.danRate) I[driveDan[a]] += p.danKick;
     const decayM = 1 / p.tauM, decayS = 1 / p.tauSyn;
     let nf = 0; fired.fill(0);
+    const sil = this.silenced;
     for (let i = 0; i < n; i++) {
+      if (sil[i]) { I[i] = 0; continue; }
       if (ref[i] <= 0) v[i] += (p.vRest - v[i]) * decayM + I[i] * decayS;
       I[i] -= I[i] * decayS; ref[i] -= 1;
       if (v[i] >= p.vTh) { v[i] = p.vReset; ref[i] = p.refrac; fired[i] = 1; this.rateCount[i]++; nf++; }

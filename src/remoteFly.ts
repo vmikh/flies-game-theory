@@ -1,4 +1,4 @@
-import type { FlyBackend, DanPop, Counts, Frames } from './backend.ts';
+import type { FlyBackend, DanPop, Counts, Frames, Lesion } from './backend.ts';
 import type { SimParams } from './sim.ts';
 import type { ShuffleMode } from './shuffle.ts';
 
@@ -10,7 +10,7 @@ export class RemoteFly implements FlyBackend {
     this.w.onmessage = (e: MessageEvent) => { const p = this.pending.get(e.data.id); if (!p) return; this.pending.delete(e.data.id); e.data.error ? p.rej(new Error(e.data.error)) : p.res(e.data.result); };
   }
   private call<T>(op: string, ...args: any[]): Promise<T> { const id = this.next++; return new Promise<T>((res, rej) => { this.pending.set(id, { res, rej }); this.w.postMessage({ id, op, args }); }); }
-  init(params: SimParams, seed: number, shuffle: ShuffleMode = 'none', shuffleSeed = 1) { return this.call<void>('init', params, seed, shuffle, shuffleSeed); }
+  init(params: SimParams, seed: number, shuffle: ShuffleMode = 'none', shuffleSeed = 1, lesion: Lesion = 'none') { return this.call<void>('init', params, seed, shuffle, shuffleSeed, lesion); }
   counts(odor: number[], ms: number, ids: number[], frames?: boolean) { return this.call<Counts>('counts', odor, ms, ids, frames); }
   teach(odor: number[], dan: DanPop, rateScale: number, ms: number, frames?: boolean) { return this.call<Frames | null>('teach', odor, dan, rateScale, ms, frames); }
   forget(rate: number) { return this.call<void>('forget', rate); }
