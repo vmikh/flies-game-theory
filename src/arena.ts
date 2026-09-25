@@ -40,8 +40,8 @@ export class Arena {
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); this.renderer.setClearColor(0x000000, 0); this.renderer.autoClear = false;
     container.appendChild(this.renderer.domElement);
     this.camera = new THREE.PerspectiveCamera(22, 1, 0.01, 100);
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement); this.controls.enableDamping = true; this.controls.dampingFactor = 0.08; this.controls.enablePan = false; this.controls.enabled = false;   // the ring is fixed; orbit and zoom only in close-up
-    this.controls.zoomSpeed = 0.8; this.controls.rotateSpeed = 0.7;
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement); this.controls.enableDamping = true; this.controls.dampingFactor = 0.08; this.controls.enablePan = false; this.controls.zoomSpeed = 0.8; this.controls.rotateSpeed = 0.7;
+    this.setRingLimits();   // the ring can be nudged a little and springs back; orbit and zoom freely only in close-up
     this.act = new Float32Array(new ArrayBuffer(4 * this.nNeurons * nBrains));
     this.actTex = new THREE.DataTexture(this.act, this.nNeurons, nBrains, THREE.RedFormat, THREE.FloatType); this.actTex.magFilter = this.actTex.minFilter = THREE.NearestFilter; this.actTex.needsUpdate = true;
     const geo = this.buildGeometry(skelMeta, skelBin);
@@ -68,6 +68,9 @@ export class Arena {
     this.camera.position.set(0, 5.6, 4.0); this.camera.lookAt(0, 0, 0);
     const el = this.renderer.domElement;
     el.addEventListener('pointerdown', (e) => { this.down = { x: e.clientX, y: e.clientY }; this.flying = false; });
+    el.addEventListener('pointerup', () => { if (this.focused === null) this.flying = true; });   // spring back to the home view
+    el.addEventListener('pointerleave', () => { if (this.focused === null) this.flying = true; });
+    el.addEventListener('pointermove', (e) => { if (this.down) return; el.style.cursor = this.pick(e.clientX, e.clientY) !== null ? 'pointer' : this.focused === null ? 'grab' : 'move'; });
     el.addEventListener('wheel', () => (this.flying = false), { passive: true });
     el.addEventListener('pointerup', (e) => { if (!this.down) return; const moved = Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y); this.down = null; if (moved > 6) return; this.focus(this.pick(e.clientX, e.clientY)); });
     addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') this.focus(null); });
@@ -144,10 +147,12 @@ export class Arena {
   /** Close-up on brain b (null = back to the ring). Replays the brain's last movie slowly. */
   focus(b: number | null) {
     this.focused = b; this.flying = true; const c = this.controls;
-    if (b === null) { this.camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) }; c.enabled = false; c.minDistance = 0; c.maxDistance = Infinity; c.maxPolarAngle = Math.PI; }   // no clamps while flying home
-    else { const a = this.anchors[b]; this.camGoal = { pos: a.clone().add(new THREE.Vector3(0, 0.95, 0.55)), target: a.clone() }; c.enabled = true; c.minDistance = 0.35; c.maxDistance = 2.4; c.maxPolarAngle = Math.PI; this.replay(b); }
+    if (b === null) { this.camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) }; c.minDistance = 0; c.maxDistance = Infinity; c.minPolarAngle = 0; c.maxPolarAngle = Math.PI; c.minAzimuthAngle = -Infinity; c.maxAzimuthAngle = Infinity; c.enableZoom = false; }   // no clamps while flying home; ring limits return once home
+    else { const a = this.anchors[b]; this.camGoal = { pos: a.clone().add(new THREE.Vector3(0, 0.95, 0.55)), target: a.clone() }; c.enabled = true; c.enableZoom = true; c.minDistance = 0.35; c.maxDistance = 2.4; c.minPolarAngle = 0; c.maxPolarAngle = Math.PI; c.minAzimuthAngle = -Infinity; c.maxAzimuthAngle = Infinity; this.replay(b); }
     this.onFocus?.(b);
   }
+  /** Home view: small angular play around the default camera, no zoom. */
+  setRingLimits() { const c = this.controls; c.enabled = true; c.enableZoom = false; c.minDistance = 0; c.maxDistance = Infinity; const polar = Math.atan2(Math.hypot(0, 4.0), 5.6); c.minPolarAngle = polar - 0.18; c.maxPolarAngle = polar + 0.18; c.minAzimuthAngle = -0.25; c.maxAzimuthAngle = 0.25; }
   /** Restart the brain's last movie from the beginning. */
   replay(b: number) { const pb = this.playback[b]; if (pb) pb.t0 = performance.now(); else if (this.lastMovie[b]) this.playback[b] = { movie: this.lastMovie[b]!, t0: performance.now() }; }
   lastMovie: (FlyMovie | null)[] = []; tags: string[] = []; dead: boolean[] = [];
@@ -161,7 +166,7 @@ export class Arena {
     for (let b = 0; b < this.nBrains; b++) { const pb = this.playback[b]; if (pb && !this.applyMovie(b, pb, now)) this.playback[b] = null; }
     this.actTex.needsUpdate = true;
     for (let i = this.flashes.length - 1; i >= 0; i--) { const f = this.flashes[i]; const age = (now - f.born) / 1000; f.mat.opacity = Math.max(0, 0.95 - age * 0.45); if (age > 2.2) { this.graph.remove(f.obj); f.obj.geometry.dispose(); f.mat.dispose(); this.flashes.splice(i, 1); } }
-    if (this.flying) { const k = 1 - Math.exp(-dt * 4); this.controls.target.lerp(this.camGoal.target, k); this.camera.position.lerp(this.camGoal.pos, k); if (this.camera.position.distanceTo(this.camGoal.pos) < 0.01) { this.camera.position.copy(this.camGoal.pos); this.controls.target.copy(this.camGoal.target); this.flying = false; } }
+    if (this.flying) { const k = 1 - Math.exp(-dt * 4); this.controls.target.lerp(this.camGoal.target, k); this.camera.position.lerp(this.camGoal.pos, k); if (this.camera.position.distanceTo(this.camGoal.pos) < 0.01) { this.camera.position.copy(this.camGoal.pos); this.controls.target.copy(this.camGoal.target); this.flying = false; if (this.focused === null) this.setRingLimits(); } }
     for (let b = 0; b < this.nBrains; b++) { const u = (this.brains[b].material as THREE.ShaderMaterial).uniforms.uDim; const goal = (this.focused === null || this.focused === b ? 1 : 0.12) * (this.dead[b] ? 0.2 : 1); u.value += (goal - u.value) * (1 - Math.exp(-dt * 6)); }
     this.graph.visible = this.focused === null;
     this.controls.update();

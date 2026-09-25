@@ -14,11 +14,11 @@ app.innerHTML = `
 <header class="topbar">
   <div class="brand"><h1 data-i18n="title"></h1><span class="status" id="status"></span></div>
   <span class="spacer"></span>
-  <button id="lang" class="btn btn-link"></button>
   <span class="seg" id="speed">${[1, 2, 5, 10, 20].map((x) => `<button data-x="${x}"${x === 1 ? ' class="on"' : ''}>${x}×</button>`).join('')}</span>
   <button id="play" class="btn btn-primary"></button>
   <button id="toggle-params" class="btn" data-i18n="parameters"></button>
   <button id="toggle-about" class="btn" data-i18n="about"></button>
+  <button id="lang" class="btn btn-link"></button>
 </header>
 <div id="about" class="scrim" hidden>
   <div class="modal">
