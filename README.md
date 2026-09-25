@@ -8,6 +8,7 @@ Opponents are presented as odors; payoffs drive reward (PAM) or punishment (PPL1
 the fly's memory is literally its Kenyon cell → MBON synaptic weights.
 
 Static site, no backend. Eight flies, each in its own Web Worker; the arena renders the real EM skeletons with three.js.
+At viewport widths below 1350 px, the site shows the project description and one rotatable connectome brain instead of running the game. The coloured waves there are illustrative signals through the circuit, not recorded gameplay.
 
 ## Run
 

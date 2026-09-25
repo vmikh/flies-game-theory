@@ -22,6 +22,24 @@ try {
   if (process.env.OG) await send('Emulation.setDeviceMetricsOverride', { width: 1200, height: 630, deviceScaleFactor: 1, mobile: false });
   if (process.env.VIEWPORT) { const [width, height] = process.env.VIEWPORT.split('x').map(Number); await send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false }); }
   await send('Page.navigate', { url: `${process.env.SMOKE_URL ?? 'http://localhost:5173'}/?${process.env.LESION || process.env.START_MONEY || process.env.ANTE ? '' : `autoplay=${rounds}&`}speed=${speed}${process.env.LANG_UI ? '&lang=' + process.env.LANG_UI : ''}${process.env.ADVANCED ? '&advanced' : ''}` });
+  if (process.env.MOBILE_CHECK) {
+    for (let i = 0; i < 60; i++) { await sleep(500); const r = await send('Runtime.evaluate', { expression: "!!document.querySelector('#mobile-brain canvas') && document.getElementById('mobile-loading')?.hidden" }); if (r.result.value) break; }
+    const read = () => send('Runtime.evaluate', { expression: "({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, mobile: !!document.querySelector('.mobile-page'), canvas: !!document.querySelector('#mobile-brain canvas'), lang: document.documentElement.lang, title: document.getElementById('mobile-title')?.textContent, note: document.getElementById('mobile-desktop-note')?.textContent, description: document.getElementById('mobile-about-body')?.textContent?.slice(0, 90) })", returnByValue: true });
+    const before = (await read()).result.value;
+    await send('Runtime.evaluate', { expression: "document.getElementById('mobile-lang').click()" });
+    const after = (await read()).result.value;
+    console.log('mobile:', { before, after });
+    if (!before.mobile || !before.canvas || before.scrollWidth > before.width || before.lang === after.lang) throw new Error('mobile check failed');
+  }
+  if (process.env.MOBILE_DRAG) {
+    const box = (await send('Runtime.evaluate', { expression: "(() => { const r = document.querySelector('#mobile-brain canvas').getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height }; })()", returnByValue: true })).result.value;
+    const x = box.x + box.w / 2, y = box.y + box.h / 2;
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+    await send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', buttons: 1, clickCount: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: x + Math.min(140, box.w / 3), y, button: 'left', buttons: 1 });
+    await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: x + Math.min(140, box.w / 3), y, button: 'left', buttons: 0, clickCount: 1 });
+    console.log('mobile drag: sent horizontal gesture');
+  }
   if (process.env.LESION || process.env.START_MONEY || process.env.ANTE) { // wait for the first game to be ready, change settings and restart
     for (let i = 0; i < 60; i++) { await sleep(500); const r = await send('Runtime.evaluate', { expression: "document.getElementById('status')?.textContent ?? ''" }); if (/(round|раунд) 0/.test(r.result.value)) break; }
     await send('Runtime.evaluate', { expression: `document.getElementById('p-lesion-0').value = ${JSON.stringify(process.env.LESION ?? 'none')}; document.getElementById('p-startMoney').value = ${JSON.stringify(process.env.START_MONEY ?? '30')}; document.getElementById('p-ante').value = ${JSON.stringify(process.env.ANTE ?? '2')}; document.getElementById('p-randomSeed').checked = false; document.getElementById('restart').click();` });

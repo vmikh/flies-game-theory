@@ -27,6 +27,9 @@ export class Arena {
   hdr: THREE.WebGLRenderTarget; toneScene = new THREE.Scene(); toneCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); toneMat: THREE.ShaderMaterial;
   brains: THREE.LineSegments[] = []; anchors: THREE.Vector3[] = []; focusPoints: THREE.Vector3[] = []; labels: HTMLDivElement[] = [];
   private brainCenterLocal = new THREE.Vector3();
+  private showcase = false;
+  private showcaseStarted = -Infinity;
+  private showcaseGroups: number[][] = [];
   act: Float32Array<ArrayBuffer>; actTex: THREE.DataTexture; nNeurons: number; nBrains: number;
   playback: (Playback | null)[]; danIds: number[]; pamIds: number[]; ppl1Ids: number[];
   graph = new THREE.Group(); edges = new Map<string, { line: Line2; mat: LineMaterial }>(); flashes: { obj: Line2; mat: LineMaterial; born: number }[] = [];
@@ -73,7 +76,7 @@ export class Arena {
     el.addEventListener('pointerleave', () => { if (this.focused === null) this.flying = true; });
     el.addEventListener('pointermove', (e) => { if (this.down) { if (this.flying && Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y) > 6) { this.flying = false; this.controls.update(); } return; } el.style.cursor = this.focused === null && this.pick(e.clientX, e.clientY) !== null ? 'pointer' : 'move'; });
     el.addEventListener('wheel', () => (this.flying = false), { passive: true });
-    el.addEventListener('pointerup', (e) => { if (!this.down) return; const moved = Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y); this.down = null; if (moved > 6) return; this.focus(this.pick(e.clientX, e.clientY)); });
+    el.addEventListener('pointerup', (e) => { if (!this.down) return; const moved = Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y); this.down = null; if (this.showcase || moved > 6) return; this.focus(this.pick(e.clientX, e.clientY)); });
     addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') this.focus(null); });
     this.resize(); addEventListener('resize', () => this.resize());
     this.loop();
@@ -98,11 +101,11 @@ export class Arena {
 
   private material(brain: number) {
     return new THREE.ShaderMaterial({
-      uniforms: { uAct: { value: this.actTex }, uBrain: { value: brain }, uN: { value: this.nNeurons }, uNB: { value: this.nBrains }, uDim: { value: 1 } },
+      uniforms: { uAct: { value: this.actTex }, uBrain: { value: brain }, uN: { value: this.nNeurons }, uNB: { value: this.nBrains }, uDim: { value: 1 }, uBase: { value: 0.018 } },
       vertexShader: `attribute float nid; attribute vec3 col; uniform sampler2D uAct; uniform float uBrain, uN, uNB; varying vec3 vCol; varying float vA;
         void main() { vA = texture2D(uAct, vec2((nid + 0.5) / uN, (uBrain + 0.5) / uNB)).r; vCol = col; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: `varying vec3 vCol; varying float vA; uniform float uDim;
-        void main() { float a = clamp(vA, 0.0, 1.0); vec3 glow = mix(vCol, vec3(1.0, 0.97, 0.9), a * 0.5); gl_FragColor = vec4(glow * (0.018 + 0.6 * a) * uDim, 1.0); }`,
+      fragmentShader: `varying vec3 vCol; varying float vA; uniform float uDim, uBase;
+        void main() { float a = clamp(vA, 0.0, 1.0); vec3 glow = mix(vCol, vec3(1.0, 0.97, 0.9), a * 0.5); gl_FragColor = vec4(glow * (uBase + 0.6 * a) * uDim, 1.0); }`,
       transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
     });
   }
@@ -111,7 +114,7 @@ export class Arena {
     const w = this.container.clientWidth, h = this.container.clientHeight; const pr = this.renderer.getPixelRatio();
     this.renderer.setSize(w, h, false); this.hdr.setSize(Math.floor(w * pr), Math.floor(h * pr)); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
     this.resolution.set(w * pr, h * pr); for (const e of this.edges.values()) e.mat.resolution.copy(this.resolution); for (const f of this.flashes) f.mat.resolution.copy(this.resolution);
-    if (this.focused !== null) { const view = this.camera.position.clone().sub(this.controls.target); this.setCloseupGoal(this.focused, view.clone().normalize(), view.length()); this.flying = true; }
+    if (this.focused !== null && !this.showcase) { const view = this.camera.position.clone().sub(this.controls.target); this.setCloseupGoal(this.focused, view.clone().normalize(), view.length()); this.flying = true; }
   }
 
   /** Feed a snapshot: queue activity movies, update the social graph and labels. */
@@ -165,6 +168,7 @@ export class Arena {
   }
   /** Close-up on brain b (null = back to the ring). Replays the brain's last movie slowly. */
   focus(b: number | null) {
+    if (this.showcase) return;
     if (b === this.focused) return;
     this.focused = b; this.flying = true; const c = this.controls;
     this.renderer.domElement.style.cursor = 'move';
@@ -190,11 +194,58 @@ export class Arena {
   lastMovie: (FlyMovie | null)[] = []; tags: string[] = []; dead: boolean[] = [];
   setTags(t: string[]) { this.tags = t.map((x) => (x === 'intact' ? '' : x)); }
 
+  /** A single, rotatable brain with synthetic waves through the real circuit, without running a game. */
+  enableShowcase() {
+    this.showcase = true; this.focused = 0; this.flying = false;
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+    (this.brains[0].material as THREE.ShaderMaterial).uniforms.uBase.value = 0.055;
+    const target = this.focusPoints[0];
+    this.controls.target.copy(target);
+    this.camera.position.copy(target).add(new THREE.Vector3(0, 0.29, 1.12));
+    this.camera.lookAt(target);
+    const polar = Math.atan2(1.12, 0.29);
+    this.controls.enableZoom = false; this.controls.enablePan = false;
+    this.controls.minPolarAngle = polar; this.controls.maxPolarAngle = polar;
+    this.controls.minAzimuthAngle = -Infinity; this.controls.maxAzimuthAngle = Infinity;
+    this.controls.update(); this.resize();
+  }
+
+  private nextShowcaseWave(): number[][] {
+    const { indptr, indices } = this.c;
+    const kc = this.c.range('Kenyon_Cell'), mbon = this.c.range('MBON');
+    const glomeruli = new Map<string, number[]>();
+    for (const id of this.c.ids('ALPN')) {
+      if (this.c.sign[id] <= 0 || !this.c.typeName[id].includes('_')) continue;
+      const name = this.c.typeName[id].split('_')[0];
+      (glomeruli.get(name) ?? glomeruli.set(name, []).get(name)!).push(id);
+    }
+    const names = [...glomeruli.keys()];
+    const pns = glomeruli.get(names[Math.floor(Math.random() * names.length)]) ?? [];
+    const sample = (ids: number[], n: number) => {
+      const a = [...ids];
+      for (let i = 0; i < Math.min(n, a.length); i++) { const j = i + Math.floor(Math.random() * (a.length - i)); [a[i], a[j]] = [a[j], a[i]]; }
+      return a.slice(0, n);
+    };
+    const kcs = new Set<number>();
+    for (const id of pns) for (let k = indptr[id]; k < indptr[id + 1]; k++) if (indices[k] >= kc[0] && indices[k] < kc[1]) kcs.add(indices[k]);
+    const activeKcs = sample([...kcs], 130);
+    const mbons = new Set<number>();
+    for (const id of activeKcs) for (let k = indptr[id]; k < indptr[id + 1]; k++) if (indices[k] >= mbon[0] && indices[k] < mbon[1]) mbons.add(indices[k]);
+    const dan = Math.random() < 0.5 ? this.pamIds : this.ppl1Ids;
+    return [sample(pns, 16), activeKcs, sample([...mbons], 22), sample(dan, 18)];
+  }
+
   private loop = () => {
     this.raf = requestAnimationFrame(this.loop);
     const now = performance.now(); const elapsed = Math.max(0, (now - this.lastT) / 1000); const dt = Math.min(0.1, elapsed); this.lastT = now;
     const k = Math.exp(-dt / 0.25);
     for (let i = 0; i < this.act.length; i++) this.act[i] = this.act[i] > 0.002 ? this.act[i] * k : 0;
+    if (this.showcase) {
+      if (now - this.showcaseStarted > 2400) { this.showcaseStarted = now; this.showcaseGroups = this.nextShowcaseWave(); }
+      const age = now - this.showcaseStarted;
+      for (let stage = 0; stage < this.showcaseGroups.length; stage++) if (age >= stage * 280 && age < stage * 280 + 180)
+        for (const id of this.showcaseGroups[stage]) this.act[id] = Math.max(this.act[id], 1.25);
+    }
     for (let b = 0; b < this.nBrains; b++) { const pb = this.playback[b]; if (pb && !this.applyMovie(b, pb, now)) this.playback[b] = null; }
     this.actTex.needsUpdate = true;
     for (let i = this.flashes.length - 1; i >= 0; i--) { const f = this.flashes[i]; const age = (now - f.born) / 1000; f.mat.opacity = Math.max(0, 0.95 - age * 0.45); if (age > 2.2) { this.graph.remove(f.obj); f.obj.geometry.dispose(); f.mat.dispose(); this.flashes.splice(i, 1); } }
