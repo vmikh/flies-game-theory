@@ -29,7 +29,7 @@ const D = {
   trustBias: { en: 'baseline trust on every move', ru: 'базовое доверие в каждой партии' },
   trustBiasHint: { en: '0: first unfamiliar opponent ≈ 50%;<br>+0.5: more trusting;<br>−0.5: more cautious.', ru: '0: первый незнакомый соперник ≈ 50%;<br>+0.5: доверчивее;<br>−0.5: осторожнее.' },
   payoffs: { en: 'payoffs', ru: 'выплаты' }, payoffsHint: { en: 'temptation / reward / punishment / sucker', ru: 'искушение / награда / наказание / простак' },
-  presetClassic: { en: 'classic 5 / 3 / 1 / 0', ru: 'классика 5 / 3 / 1 / 0' }, presetGenerous: { en: 'generous 5 / 4 / 1 / 0', ru: 'щедрый мир 5 / 4 / 1 / 0' }, presetHarsh: { en: 'harsh 5 / 3 / 1 / −1', ru: 'жёсткий мир 5 / 3 / 1 / −1' },
+  presetClassic: { en: 'classic 5 / 3 / 1 / 0', ru: 'классика 5 / 3 / 1 / 0' }, presetGenerous: { en: 'generous 5 / 4 / 1 / 0', ru: 'щедрый мир 5 / 4 / 1 / 0' }, presetHarsh: { en: 'harsh 6 / 3 / 1 / −1', ru: 'жёсткий мир 6 / 3 / 1 / −1' },
   lesions: { en: 'Mutations', ru: 'Мутации' }, perFly: { en: '(set per fly)', ru: '(отдельно для каждой мухи)' },
   mutationsHint: { en: 'A mutant fly has part of its brain switched off. What it does to behaviour:', ru: 'У мухи-мутанта отключена часть мозга. Как это меняет поведение:' },
   apply: { en: 'Apply and restart', ru: 'Применить и начать заново' }, cancel: { en: 'Cancel', ru: 'Отмена' },
