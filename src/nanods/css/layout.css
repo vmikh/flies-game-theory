@@ -14,7 +14,7 @@
 .island-fade::before { top: 0; background: linear-gradient(to bottom, var(--c-island) 10%, rgba(23, 26, 33, 0)); }
 .island-fade::after { bottom: 0; background: linear-gradient(to top, var(--c-island) 10%, rgba(23, 26, 33, 0)); }
 
-.card { background: var(--c-surface); border-radius: var(--rd-3); padding: var(--mp-3); }
+.card { background: var(--c-surface-2); border-radius: var(--rd-3); padding: var(--mp-3); }   /* same tone as inputs and secondary buttons */
 .divider { border: 0; border-top: 1px solid var(--c-line); margin: var(--mp-3) 0; }
 
 /* flow utilities */
