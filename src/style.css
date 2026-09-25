@@ -36,8 +36,8 @@ html, body, #app { height: 100%; }
 .lesion { color: var(--c-danger); }
 
 /* trust matrix + timeline */
-.lbl { fill: var(--c-fg-4); font-size: 11px; font-family: var(--font); }
-.ax text, .ay text { fill: var(--c-fg-4); font-size: 10px; font-family: var(--font); } .ax path, .ay path, .ax line, .ay line { stroke: var(--c-surface-2); }
+.lbl { fill: var(--c-fg-4); font-size: 12px; font-family: var(--font); }
+.ax text, .ay text { fill: var(--c-fg-4); font-size: 11px; font-family: var(--font); } .ax path, .ay path, .ax line, .ay line { stroke: var(--c-surface-2); }
 
 /* game log */
 .lrow { display: grid; grid-template-columns: 3em 6.5em 1.2em auto; gap: var(--mp-15); font-size: var(--fs-meta); font-variant-numeric: tabular-nums; padding: 1px 0; white-space: nowrap; color: var(--c-fg-2); }

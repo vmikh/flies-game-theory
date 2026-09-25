@@ -54,8 +54,8 @@
   /* typography */
   --font: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, Menlo, Consolas, monospace;
-  --fs-xs: 10px; --fs-sm: 11px; --fs-meta: 12px; --fs-ui: 13px; --fs-body: 14px; --fs-lg: 15px; --fs-xl: 16px;
-  --fs-h3: 18px; --fs-h2: 22px; --fs-h1: 28px;
+  --fs-xs: 11px; --fs-sm: 12px; --fs-meta: 13px; --fs-ui: 14px; --fs-body: 15px; --fs-lg: 16px; --fs-xl: 17px;
+  --fs-h3: 20px; --fs-h2: 24px; --fs-h1: 32px;
   --lh-tight: 1.2; --lh-ui: 1.35; --lh-body: 1.5;
   --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
 
