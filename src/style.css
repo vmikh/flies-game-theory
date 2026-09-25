@@ -3,19 +3,20 @@
 
 :root { --coop: var(--c-ok); --defect: #E4572E; --mixed: var(--c-warn); }
 html, body, #app { height: 100%; }
-#app { display: flex; flex-direction: column; gap: var(--gutter); padding: var(--gutter); }
+#app { display: flex; gap: var(--gutter); padding: var(--gutter); position: relative; }
+.left { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
 /* top bar */
-.topbar { flex: none; height: 56px; display: flex; align-items: center; gap: var(--mp-3); padding: 0 var(--island-pad); }
+.topbar { flex: none; height: 56px; display: flex; align-items: center; gap: var(--mp-3); padding: 0 var(--island-pad); background: transparent; }
 .topbar h1 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); white-space: nowrap; }
 .topbar .status { font-size: var(--fs-meta); color: var(--c-fg-3); font-variant-numeric: tabular-nums; }
 .topbar .seg > button { min-width: 40px; }
 
 /* main area */
-.layout { flex: 1; display: flex; gap: var(--gutter); min-height: 0; }
+.layout { flex: 1; display: flex; min-height: 0; }
 #arena { flex: 1; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
 #arena canvas { width: 100% !important; height: 100% !important; display: block; }
-.side { width: 340px; flex: none; display: flex; flex-direction: column; overflow: auto; }
+.side { width: 340px; flex: none; display: flex; flex-direction: column; overflow: auto; align-self: stretch; }
 .side > section { flex: none; } .side > .divider { margin: var(--mp-4) 0; }
 .side h2 { font-size: var(--fs-sm); font-weight: var(--fw-semibold); letter-spacing: .04em; text-transform: uppercase; color: var(--c-fg-4); margin: 0 0 var(--mp-2); }
 .sub { font-size: var(--fs-sm); color: var(--c-fg-4); line-height: 1.4; margin: calc(-1 * var(--mp-1)) 0 var(--mp-25); }

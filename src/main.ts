@@ -10,7 +10,8 @@ import { aboutHtml } from './about.ts';
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
-<header class="island topbar">
+<div class="left">
+<header class="topbar">
   <h1 data-i18n="title"></h1>
   <span class="status" id="status"></span>
   <span class="spacer"></span>
@@ -48,6 +49,8 @@ app.innerHTML = `
 </aside>
 <main class="layout">
   <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn btn-sm"><span data-i18n="back"></span> <span class="kbd">Esc</span></button></div></div></section>
+</main>
+</div>
   <aside class="side island island-pad">
     <section id="board"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
     <hr class="divider">
@@ -56,8 +59,7 @@ app.innerHTML = `
     <section id="timeline"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
     <hr class="divider" id="log-divider" hidden>
     <section id="log" hidden><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
-  </aside>
-</main>`;
+  </aside>`;
 const status = document.getElementById('status')!;
 const playBtn = document.getElementById('play') as HTMLButtonElement;
 const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
