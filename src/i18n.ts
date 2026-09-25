@@ -27,6 +27,11 @@ const D = {
   mutationsHint: { en: 'A mutant fly has part of its brain switched off. What it does to behaviour:', ru: 'У мухи-мутанта отключена часть мозга. Как это меняет поведение:' },
   apply: { en: 'Apply and restart', ru: 'Применить и начать заново' }, cancel: { en: 'Cancel', ru: 'Отмена' },
   advanced: { en: 'Advanced', ru: 'Дополнительно' },
+  wiring: { en: 'wiring', ru: 'проводка' }, realConnectome: { en: 'real connectome', ru: 'реальный коннектом' }, shuffledControl: { en: 'shuffled (control)', ru: 'перемешанный (контроль)' },
+  seed: { en: 'seed', ru: 'зерно случайности' }, newSeedEachRestart: { en: 'new each restart', ru: 'новое при каждом запуске' },
+  temperature: { en: 'temperature', ru: 'температура выбора' }, decisionWindow: { en: 'decision window, ms', ru: 'время на решение, мс' },
+  learningWindow: { en: 'learning window, ms', ru: 'время обучения, мс' }, antePerGame: { en: 'ante per game', ru: 'взнос за партию' },
+  startMoney: { en: 'start money', ru: 'стартовые очки' }, payoffMatrix: { en: 'payoff T / R / P / S', ru: 'выплаты T / R / P / S' },
   // lesion labels + hints
   'les.none': { en: 'normal', ru: 'обычная' }, 'les.none.hint': { en: '', ru: '' },
   'les.noPPL1': { en: 'no PPL1', ru: 'без PPL1' }, 'les.noPPL1.hint': { en: 'no punishment signal, cannot hold a grudge: cooperates with almost everyone and gets exploited', ru: 'не чувствует наказания и не умеет обижаться: сотрудничает почти со всеми, и её доят' },
@@ -38,29 +43,36 @@ const D = {
   'st.tit-for-tat': { en: 'tit-for-tat', ru: 'око за око' }, 'st.forgiving tit-for-tat': { en: 'forgiving tit-for-tat', ru: 'отходчивое око за око' },
   'st.always cooperates': { en: 'always cooperates', ru: 'всегда сотрудничает' }, 'st.defector': { en: 'defector', ru: 'предатель' },
   'st.contrarian': { en: 'contrarian', ru: 'наоборот' }, 'st.unstable': { en: 'unstable', ru: 'неустойчивая' }, 'st.…': { en: '…', ru: '…' },
-  firstMeeting: { en: 'first meeting', ru: 'первая встреча' }, afterC: { en: 'after C', ru: 'после C' }, afterD: { en: 'after D', ru: 'после D' },
+  firstMeeting: { en: 'First meeting', ru: 'Первая встреча' }, afterC: { en: 'Opponent cooperated', ru: 'Соперник сотрудничал' }, afterD: { en: 'Opponent defected', ru: 'Соперник предал' },
   afterOppC: { en: 'after opponent cooperated', ru: 'после сотрудничества соперника' }, afterOppD: { en: 'after opponent defected', ru: 'после предательства соперника' },
+  choiceRates: { en: 'Response to opponents', ru: 'Ответ на действия соперника' },
+  sampleGames: { en: '{n} games', ru: '{n} партий' },
+  choiceNoData: { en: 'too few games', ru: 'мало партий' },
   // side panel
   ranking: { en: 'Ranking', ru: 'Рейтинг' }, trust: { en: 'Trust', ru: 'Доверие' },
   trustSub: { en: 'how the fly feels about each opponent<br>green approach, red avoid', ru: 'как муха относится к каждому сопернику<br>зелёный: тянет, красный: избегает' },
   cooperation: { en: 'Cooperation', ru: 'Сотрудничество' }, cooperationSub: { en: 'share of cooperative choices, last 200 decisions', ru: 'доля сотрудничества, последние 200 решений' },
   lastGames: { en: 'Last games', ru: 'Последние партии' },
+  roundShort: { en: 'R{r}', ru: 'Р{r}' }, versus: { en: 'vs', ru: 'против' },
+  roundsStat: { en: 'rounds {n}', ru: 'раундов {n}' },
   stats: { en: 'coop {c}% · betrayed {b}', ru: 'сотр. {c}% · предана {b}' },
-  out: { en: 'out', ru: 'выбыла' }, gameOver: { en: 'game over', ru: 'игра окончена' },
+  gameOver: { en: 'game over', ru: 'игра окончена' },
   cooperated: { en: 'cooperated', ru: 'сотрудничала' }, defected: { en: 'defected', ru: 'предала' }, pCoop: { en: 'p(cooperate)', ru: 'p(сотрудничать)' },
   // caption
   money: { en: 'money', ru: 'денег' }, games: { en: 'games', ru: 'партий' }, cooperates: { en: 'cooperates', ru: 'сотрудничает' },
-  lastGame: { en: 'Last game · R{r} vs F{o}', ru: 'Последняя партия · R{r} против F{o}' },
-  smells: { en: 'smells F{o}', ru: 'нюхает F{o}' }, approachMinusAvoid: { en: 'approach − avoid', ru: 'тяга − избегание' },
-  decides: { en: 'decides', ru: 'решает' }, decCoop: { en: 'cooperates', ru: 'сотрудничает' }, decDefect: { en: 'defects', ru: 'предаёт' },
+  lastGame: { en: 'Last game', ru: 'Последняя партия' },
+  roundAgainst: { en: 'Round {r} · vs F{o}', ru: 'Раунд {r} · против F{o}' },
+  brainResponse: { en: 'Brain signal', ru: 'Сигнал мозга' },
+  approachMinusAvoid: { en: 'approach − avoid', ru: 'тяга − избегание' },
+  coopChance: { en: 'chance to cooperate', ru: 'шанс сотрудничества' },
   payoff: { en: 'payoff', ru: 'выплата' }, reward: { en: 'reward · PAM dopamine', ru: 'награда · дофамин PAM' }, punishment: { en: 'punishment · PPL1 dopamine', ru: 'наказание · дофамин PPL1' },
-  movieNote: { en: 'activity replay is recorded at 1× and 2× only', ru: 'активность записывается только на 1× и 2×' },
   back: { en: 'Back', ru: 'Назад' },
 } satisfies Record<string, Entry>;
 
 export type Key = keyof typeof D;
 const urlLang = new URLSearchParams(location.search).get('lang') as Lang | null;
-let lang: Lang = urlLang === 'ru' || urlLang === 'en' ? urlLang : ((localStorage.getItem('lang') as Lang) || (navigator.language.startsWith('ru') ? 'ru' : 'en'));
+const savedLang = localStorage.getItem('lang');
+let lang: Lang = urlLang === 'ru' || urlLang === 'en' ? urlLang : savedLang === 'ru' || savedLang === 'en' ? savedLang : navigator.language.startsWith('ru') ? 'ru' : 'en';
 const listeners: (() => void)[] = [];
 export const getLang = () => lang;
 export function setLang(l: Lang) { lang = l; localStorage.setItem('lang', l); document.documentElement.lang = l; for (const f of listeners) f(); }

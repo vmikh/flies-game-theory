@@ -25,7 +25,8 @@ interface Playback { movie: FlyMovie; t0: number }
 export class Arena {
   renderer: THREE.WebGLRenderer; scene = new THREE.Scene(); camera: THREE.PerspectiveCamera; controls: OrbitControls;
   hdr: THREE.WebGLRenderTarget; toneScene = new THREE.Scene(); toneCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); toneMat: THREE.ShaderMaterial;
-  brains: THREE.LineSegments[] = []; anchors: THREE.Vector3[] = []; labels: HTMLDivElement[] = [];
+  brains: THREE.LineSegments[] = []; anchors: THREE.Vector3[] = []; focusPoints: THREE.Vector3[] = []; labels: HTMLDivElement[] = [];
+  private brainCenterLocal = new THREE.Vector3();
   act: Float32Array<ArrayBuffer>; actTex: THREE.DataTexture; nNeurons: number; nBrains: number;
   playback: (Playback | null)[]; danIds: number[]; pamIds: number[]; ppl1Ids: number[];
   graph = new THREE.Group(); edges = new Map<string, { line: Line2; mat: LineMaterial }>(); flashes: { obj: Line2; mat: LineMaterial; born: number }[] = [];
@@ -50,7 +51,7 @@ export class Arena {
       const obj = new THREE.LineSegments(geo, this.material(b));
       const a = (b / nBrains) * Math.PI * 2 - Math.PI / 2; const pos = new THREE.Vector3(Math.cos(a) * 1.45, 0, Math.sin(a) * 0.95);
       obj.position.copy(pos); obj.scale.setScalar(scale); obj.rotation.x = -Math.PI / 2; obj.rotation.z = -a;
-      this.scene.add(obj); this.brains.push(obj); this.anchors.push(pos);
+      this.scene.add(obj); obj.updateMatrixWorld(true); this.brains.push(obj); this.anchors.push(pos); this.focusPoints.push(obj.localToWorld(this.brainCenterLocal.clone()));
       const lbl = document.createElement('div'); lbl.className = 'arena-label'; lbl.textContent = `F${b + 1}`; container.appendChild(lbl); this.labels.push(lbl);
     }
     this.scene.add(this.graph);
@@ -67,10 +68,10 @@ export class Arena {
     this.toneScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.toneMat));
     this.camera.position.set(0, 5.6, 4.0); this.camera.lookAt(0, 0, 0);
     const el = this.renderer.domElement;
-    el.addEventListener('pointerdown', (e) => { this.down = { x: e.clientX, y: e.clientY }; this.flying = false; });
+    el.addEventListener('pointerdown', (e) => { this.down = { x: e.clientX, y: e.clientY }; });
     el.addEventListener('pointerup', () => { if (this.focused === null) this.flying = true; });   // spring back to the home view
     el.addEventListener('pointerleave', () => { if (this.focused === null) this.flying = true; });
-    el.addEventListener('pointermove', (e) => { if (this.down) return; el.style.cursor = this.pick(e.clientX, e.clientY) !== null ? 'pointer' : this.focused === null ? 'grab' : 'move'; });
+    el.addEventListener('pointermove', (e) => { if (this.down) { if (this.flying && Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y) > 6) { this.flying = false; this.controls.update(); } return; } el.style.cursor = this.focused === null && this.pick(e.clientX, e.clientY) !== null ? 'pointer' : 'move'; });
     el.addEventListener('wheel', () => (this.flying = false), { passive: true });
     el.addEventListener('pointerup', (e) => { if (!this.down) return; const moved = Math.hypot(e.clientX - this.down.x, e.clientY - this.down.y); this.down = null; if (moved > 6) return; this.focus(this.pick(e.clientX, e.clientY)); });
     addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') this.focus(null); });
@@ -80,6 +81,9 @@ export class Arena {
 
   private buildGeometry(m: SkelMeta, bin: ArrayBuffer): THREE.BufferGeometry {
     const L = m.layout; const segOff = new Uint32Array(bin, L.segOff.offset, L.segOff.length); const xyz = new Float32Array(bin, L.xyz.offset, L.xyz.length);
+    let sx = 0, sy = 0, sz = 0;
+    for (let i = 0; i < xyz.length; i += 3) { sx += xyz[i]; sy += xyz[i + 1]; sz += xyz[i + 2]; }
+    this.brainCenterLocal.set(sx, sy, sz).divideScalar(xyz.length / 3);
     const nv = m.nseg * 2; const nid = new Float32Array(nv), col = new Float32Array(nv * 3);
     const pam = new Set(this.pamIds), ppl1 = new Set(this.ppl1Ids);
     for (let i = 0; i < m.n; i++) {
@@ -88,6 +92,7 @@ export class Arena {
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(xyz, 3)); geo.setAttribute('nid', new THREE.BufferAttribute(nid, 1)); geo.setAttribute('col', new THREE.BufferAttribute(col, 3));
+    geo.computeBoundingBox();
     return geo;
   }
 
@@ -106,6 +111,7 @@ export class Arena {
     const w = this.container.clientWidth, h = this.container.clientHeight; const pr = this.renderer.getPixelRatio();
     this.renderer.setSize(w, h, false); this.hdr.setSize(Math.floor(w * pr), Math.floor(h * pr)); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
     this.resolution.set(w * pr, h * pr); for (const e of this.edges.values()) e.mat.resolution.copy(this.resolution); for (const f of this.flashes) f.mat.resolution.copy(this.resolution);
+    if (this.focused !== null) { const view = this.camera.position.clone().sub(this.controls.target); this.setCloseupGoal(this.focused, view.clone().normalize(), view.length()); this.flying = true; }
   }
 
   /** Feed a snapshot: queue activity movies, update the social graph and labels. */
@@ -138,18 +144,44 @@ export class Arena {
     return false;
   }
 
-  /** Nearest brain anchor to a screen point, within 90 px. */
+  /** Pick the visible brain; in close-up use its projected bounds rather than its ring anchor. */
   pick(cx: number, cy: number): number | null {
+    if (this.focused !== null) return this.hitsFocusedBrain(cx, cy) ? this.focused : null;
     const r = this.container.getBoundingClientRect(); const w = r.width, h = r.height; const v = new THREE.Vector3(); let best: number | null = null, bd = 90;
     for (let b = 0; b < this.nBrains; b++) { v.copy(this.anchors[b]).project(this.camera); const d = Math.hypot(((v.x + 1) / 2) * w - (cx - r.left), ((1 - v.y) / 2) * h - (cy - r.top)); if (d < bd) { bd = d; best = b; } }
     return best;
   }
+  private hitsFocusedBrain(cx: number, cy: number): boolean {
+    const brain = this.brains[this.focused!], box = brain.geometry.boundingBox;
+    if (!box) return false;
+    const r = this.container.getBoundingClientRect(); let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const p = new THREE.Vector3();
+    for (const x of [box.min.x, box.max.x]) for (const y of [box.min.y, box.max.y]) for (const z of [box.min.z, box.max.z]) {
+      p.set(x, y, z).applyMatrix4(brain.matrixWorld).project(this.camera);
+      const sx = r.left + (p.x + 1) * r.width / 2, sy = r.top + (1 - p.y) * r.height / 2;
+      minX = Math.min(minX, sx); maxX = Math.max(maxX, sx); minY = Math.min(minY, sy); maxY = Math.max(maxY, sy);
+    }
+    return cx >= minX - 8 && cx <= maxX + 8 && cy >= minY - 8 && cy <= maxY + 8;
+  }
   /** Close-up on brain b (null = back to the ring). Replays the brain's last movie slowly. */
   focus(b: number | null) {
+    if (b === this.focused) return;
     this.focused = b; this.flying = true; const c = this.controls;
+    this.renderer.domElement.style.cursor = 'move';
+    this.onFocus?.(b); // show the caption before measuring the space available beside it
     if (b === null) { this.camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) }; c.minDistance = 0; c.maxDistance = Infinity; c.minPolarAngle = 0; c.maxPolarAngle = Math.PI; c.minAzimuthAngle = -Infinity; c.maxAzimuthAngle = Infinity; c.enableZoom = false; }   // no clamps while flying home; ring limits return once home
-    else { const a = this.anchors[b]; this.camGoal = { pos: a.clone().add(new THREE.Vector3(0, 0.95, 0.55)), target: a.clone() }; c.enabled = true; c.enableZoom = true; c.minDistance = 0.35; c.maxDistance = 2.4; c.minPolarAngle = 0; c.maxPolarAngle = Math.PI; c.minAzimuthAngle = -Infinity; c.maxAzimuthAngle = Infinity; this.replay(b); }
-    this.onFocus?.(b);
+    else { const view = this.camera.position.clone().sub(c.target).normalize(); this.setCloseupGoal(b, view, 1.1); c.enabled = true; c.enableZoom = true; c.minDistance = 0.35; c.maxDistance = 2.4; c.minPolarAngle = 0; c.maxPolarAngle = Math.PI; c.minAzimuthAngle = -Infinity; c.maxAzimuthAngle = Infinity; this.replay(b); }
+  }
+  /** Aim the brain at the midpoint of the free area between its caption and the right sidebar. */
+  private setCloseupGoal(b: number, view: THREE.Vector3, distance: number) {
+    const arena = this.container.getBoundingClientRect();
+    const captionRight = document.getElementById('caption')?.getBoundingClientRect().right ?? arena.left;
+    const desiredX = (Math.min(captionRight, arena.right) + arena.right) / 2 - arena.left;
+    const ndcX = 2 * desiredX / arena.width - 1;
+    const worldOffset = ndcX * distance * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * this.camera.aspect;
+    const right = new THREE.Vector3().crossVectors(view.clone().negate(), this.camera.up).normalize();
+    const target = this.focusPoints[b].clone().addScaledVector(right, -worldOffset);
+    this.camGoal = { pos: target.clone().addScaledVector(view, distance), target };
   }
   /** Home view: small angular play around the default camera, no zoom. */
   setRingLimits() { const c = this.controls; c.enabled = true; c.enableZoom = false; c.minDistance = 0; c.maxDistance = Infinity; const polar = Math.atan2(Math.hypot(0, 4.0), 5.6); c.minPolarAngle = polar - 0.18; c.maxPolarAngle = polar + 0.18; c.minAzimuthAngle = -0.25; c.maxAzimuthAngle = 0.25; }
@@ -160,22 +192,22 @@ export class Arena {
 
   private loop = () => {
     this.raf = requestAnimationFrame(this.loop);
-    const now = performance.now(); const dt = Math.min(0.1, (now - this.lastT) / 1000); this.lastT = now;
+    const now = performance.now(); const elapsed = Math.max(0, (now - this.lastT) / 1000); const dt = Math.min(0.1, elapsed); this.lastT = now;
     const k = Math.exp(-dt / 0.25);
     for (let i = 0; i < this.act.length; i++) this.act[i] = this.act[i] > 0.002 ? this.act[i] * k : 0;
     for (let b = 0; b < this.nBrains; b++) { const pb = this.playback[b]; if (pb && !this.applyMovie(b, pb, now)) this.playback[b] = null; }
     this.actTex.needsUpdate = true;
     for (let i = this.flashes.length - 1; i >= 0; i--) { const f = this.flashes[i]; const age = (now - f.born) / 1000; f.mat.opacity = Math.max(0, 0.95 - age * 0.45); if (age > 2.2) { this.graph.remove(f.obj); f.obj.geometry.dispose(); f.mat.dispose(); this.flashes.splice(i, 1); } }
-    if (this.flying) { const k = 1 - Math.exp(-dt * 4); this.controls.target.lerp(this.camGoal.target, k); this.camera.position.lerp(this.camGoal.pos, k); if (this.camera.position.distanceTo(this.camGoal.pos) < 0.01) { this.camera.position.copy(this.camGoal.pos); this.controls.target.copy(this.camGoal.target); this.flying = false; if (this.focused === null) this.setRingLimits(); } }
+    if (this.flying) { const k = 1 - Math.exp(-elapsed * 4); this.controls.target.lerp(this.camGoal.target, k); this.camera.position.lerp(this.camGoal.pos, k); this.camera.lookAt(this.controls.target); if (this.camera.position.distanceTo(this.camGoal.pos) < 0.01 && this.controls.target.distanceTo(this.camGoal.target) < 0.01) { this.camera.position.copy(this.camGoal.pos); this.controls.target.copy(this.camGoal.target); this.camera.lookAt(this.controls.target); this.flying = false; this.controls.update(); if (this.focused === null) this.setRingLimits(); } }
     for (let b = 0; b < this.nBrains; b++) { const u = (this.brains[b].material as THREE.ShaderMaterial).uniforms.uDim; const goal = (this.focused === null || this.focused === b ? 1 : 0.12) * (this.dead[b] ? 0.2 : 1); u.value += (goal - u.value) * (1 - Math.exp(-dt * 6)); }
     this.graph.visible = this.focused === null;
-    this.controls.update();
+    if (!this.flying) this.controls.update();
     // pass 1: brains into HDR (additive); pass 2: tone map to screen; pass 3: graph + overlays on top
     this.renderer.setRenderTarget(this.hdr); this.renderer.clear(); for (const g of [this.graph]) g.visible = false; this.renderer.render(this.scene, this.camera);
     this.renderer.setRenderTarget(null); this.renderer.render(this.toneScene, this.toneCam);
     if (this.focused === null) { this.graph.visible = true; for (const b of this.brains) b.visible = false; this.renderer.render(this.scene, this.camera); for (const b of this.brains) b.visible = true; }
     const w = this.container.clientWidth, h = this.container.clientHeight; const v = new THREE.Vector3();
-    for (let b = 0; b < this.nBrains; b++) { this.labels[b].style.opacity = this.focused === null || this.focused === b ? '1' : '0'; v.copy(this.anchors[b]); v.z += 0.3; v.project(this.camera); this.labels[b].style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, 0)`; }
+    for (let b = 0; b < this.nBrains; b++) { this.labels[b].style.opacity = this.focused === null ? '1' : '0'; v.copy(this.anchors[b]); v.z += 0.3; v.project(this.camera); this.labels[b].style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, 0)`; }
   };
 
   static async load(container: HTMLElement, c: Circuit, nBrains: number, base = '/data/skel_R') {

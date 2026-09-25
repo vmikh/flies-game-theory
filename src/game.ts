@@ -38,7 +38,7 @@ export const DEFAULT_GAME: GameParams = {
 };
 
 export interface Fly {
-  id: number; name: string; be: FlyBackend; money: number; alive: boolean; lineage: number; born: number;
+  id: number; name: string; be: FlyBackend; money: number; alive: boolean; eliminatedRound: number | null; lineage: number; born: number;
   base: Float32Array;       // naive mean spike count per MBON per opponent odour: [opp * nMbon + j]
   trust: Float32Array;      // last decision score per opponent
   activity: Uint16Array | null; lastOpp: number;   // whole-circuit spike counts of the last decision (visualisation)
@@ -50,7 +50,7 @@ export interface Fly {
 
 /** Empirical strategy counters: what the fly does on a first meeting, after the opponent cooperated, after it defected. */
 export interface StratCounts { nFirst: number; cFirst: number; nAfterC: number; cAfterC: number; nAfterD: number; cAfterD: number }
-export interface Strategy { trust: number | null; reciprocity: number | null; forgiveness: number | null; label: string; n: number }
+export interface Strategy { trust: number | null; reciprocity: number | null; forgiveness: number | null; label: string; n: number; nFirst: number; nAfterC: number; nAfterD: number }
 
 /** Classify from the three conditional cooperation rates (needs ≥3 observations each). */
 export function classify(s: StratCounts): Strategy {
@@ -65,7 +65,7 @@ export function classify(s: StratCounts): Strategy {
     else if (rec <= 0.4 && forg >= 0.6) label = 'contrarian';
     else label = 'unstable';
   }
-  return { trust, reciprocity: rec, forgiveness: forg, label, n: s.nFirst + s.nAfterC + s.nAfterD };
+  return { trust, reciprocity: rec, forgiveness: forg, label, n: s.nFirst + s.nAfterC + s.nAfterD, nFirst: s.nFirst, nAfterC: s.nAfterC, nAfterD: s.nAfterD };
 }
 
 export interface FlyMovie { opp: number; decision: Frames | null; teach: Frames | null; dan: DanPop | null; valence: number }
@@ -76,7 +76,7 @@ export interface GameRecord {
 
 export interface Snapshot {
   round: number; games: number; coopRate: number; recentCoopRate: number;
-  flies: { id: number; name: string; money: number; alive: boolean; lineage: number; games: number; coops: number; defects: number; betrayed: number; strategy: Strategy; lesion: Lesion }[];
+  flies: { id: number; name: string; money: number; alive: boolean; eliminatedRound: number | null; lineage: number; games: number; coops: number; defects: number; betrayed: number; strategy: Strategy; lesion: Lesion }[];
   trust: number[][];
   activity: (Uint16Array | null)[];   // per fly, whole-circuit spike counts of its last decision
   movies: (FlyMovie | null)[];
@@ -127,7 +127,7 @@ export class Game {
 
   private async newFly(id: number, lineage: number, born: number, cloneOf?: Fly): Promise<Fly> {
     const lesion = this.p.lesions[id] ?? 'none'; const be = await this.makeBackend(id, this.p.seed * 1000 + id * 17 + born, lesion);
-    const f: Fly = { id, name: `F${id + 1}`, be, money: this.p.startMoney, alive: true, lineage, born,
+    const f: Fly = { id, name: `F${id + 1}`, be, money: this.p.startMoney, alive: true, eliminatedRound: null, lineage, born,
       base: new Float32Array(this.p.nFlies * this.nMbon), trust: new Float32Array(this.p.nFlies), activity: null, lastOpp: -1, movie: null, games: 0, coops: 0, defects: 0, betrayed: 0,
       lastOppAct: new Int8Array(this.p.nFlies).fill(-1), strat: { nFirst: 0, cFirst: 0, nAfterC: 0, cAfterC: 0, nAfterD: 0, cAfterD: 0 } };
     if (cloneOf) {   // inherit memory + calibration; the parent's own odour is new to the clone
@@ -224,7 +224,7 @@ export class Game {
     await Promise.all([...tasks.values()].map(async (list) => { for (const t of list) await t(); }));
     this.log.push(...recs);
     // 4. bankruptcy is final: the fly leaves the table with 0, its brain is released, its record stays
-    for (const f of this.flies.filter((x) => x.alive)) if (f.money <= 0) { f.alive = false; f.money = 0; f.be.dispose(); }
+    for (const f of this.flies.filter((x) => x.alive)) if (f.money <= 0) { f.alive = false; f.eliminatedRound = this.round + 1; f.money = 0; f.be.dispose(); }
     await Promise.all(this.flies.filter((f) => f.alive).map((f) => f.be.forget(this.p.forgetPerRound)));
     if (pairs.length) this.round++;
     return recs;
@@ -235,7 +235,7 @@ export class Game {
     return {
       round: this.round, games: this.gamesPlayed, coopRate: this.gamesPlayed ? this.coopTotal / (2 * this.gamesPlayed) : 0,
       recentCoopRate: this.recent.length ? this.recent.filter(Boolean).length / this.recent.length : 0,
-      flies: this.flies.map((f) => ({ id: f.id, name: f.name, money: f.money, alive: f.alive, lineage: f.lineage, games: f.games, coops: f.coops, defects: f.defects, betrayed: f.betrayed, strategy: classify(f.strat), lesion: this.p.lesions[f.id] ?? 'none' })),
+      flies: this.flies.map((f) => ({ id: f.id, name: f.name, money: f.money, alive: f.alive, eliminatedRound: f.eliminatedRound, lineage: f.lineage, games: f.games, coops: f.coops, defects: f.defects, betrayed: f.betrayed, strategy: classify(f.strat), lesion: this.p.lesions[f.id] ?? 'none' })),
       trust: this.flies.map((f) => Array.from(f.trust)), activity: this.flies.map((f) => f.activity), movies: this.flies.map((f) => f.movie),
       pairs: [...this.pairStats.values()].map((p) => ({ a: p.a, b: p.b, games: p.games, outcome: p.sum / p.games, lastRound: p.lastRound })),
       last: this.log.slice(-Math.max(1, n)),

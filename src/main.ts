@@ -5,8 +5,11 @@ import { RemoteFly } from './remoteFly.ts';
 import type { ShuffleMode } from './shuffle.ts';
 import { Arena } from './arena.ts';
 import { LESIONS, type Lesion } from './backend.ts';
-import { t, getLang, setLang, onLang, strategyLabel, lesionLabel, lesionHint } from './i18n.ts';
+import { t, getLang, setLang, onLang, strategyLabel, lesionLabel, lesionHint, type Key } from './i18n.ts';
 import { aboutHtml } from './about.ts';
+import { initAnalytics, track } from './analytics.ts';
+
+initAnalytics();
 
 const app = document.getElementById('app')!;
 app.innerHTML = `
@@ -37,20 +40,20 @@ app.innerHTML = `
   <div id="lesions">${Array.from({ length: DEFAULT_GAME.nFlies }, (_, i) => `<div class="field compact"><label class="label">F${i + 1}</label><select class="select select-sm" id="p-lesion-${i}">${LESIONS.map((l) => `<option value="${l.id}"></option>`).join('')}</select></div>`).join('')}</div>
   <div class="legend"><div class="muted" data-i18n="mutationsHint"></div><dl id="lesion-legend"></dl></div>
   <details id="advanced" hidden><summary data-i18n="advanced"></summary>
-    <div class="field compact"><label class="label">wiring</label><select class="select select-sm" id="p-shuffle"><option value="none">real connectome</option><option value="class">shuffled (control)</option></select></div>
-    <div class="field compact"><label class="label">seed</label><span class="row"><input class="input input-sm" id="p-seed" type="number" value="1" style="width:6em"> <label class="check"><input id="p-randomSeed" type="checkbox" checked> new each restart</label></span></div>
-    <div class="field compact"><label class="label">temperature</label><input class="input input-sm" id="p-temperature" type="number" step="0.05" min="0.05"></div>
-    <div class="field compact"><label class="label">decision window, ms</label><input class="input input-sm" id="p-decisionMs" type="number" step="50" min="100"></div>
-    <div class="field compact"><label class="label">learning window, ms</label><input class="input input-sm" id="p-learnMs" type="number" step="50" min="50"></div>
-    <div class="field compact"><label class="label">ante per game</label><input class="input input-sm" id="p-ante" type="number" step="0.5"></div>
-    <div class="field compact"><label class="label">start money</label><input class="input input-sm" id="p-startMoney" type="number"></div>
-    <div class="field compact"><label class="label">payoff T / R / P / S</label><span class="row"><input class="input input-sm" id="p-T" type="number" style="width:3.4em"><input class="input input-sm" id="p-R" type="number" style="width:3.4em"><input class="input input-sm" id="p-P" type="number" style="width:3.4em"><input class="input input-sm" id="p-S" type="number" style="width:3.4em"></span></div>
+    <div class="field compact"><label class="label" data-i18n="wiring"></label><select class="select select-sm" id="p-shuffle"><option value="none" data-i18n="realConnectome"></option><option value="class" data-i18n="shuffledControl"></option></select></div>
+    <div class="field compact"><label class="label" data-i18n="seed"></label><span class="row"><input class="input input-sm" id="p-seed" type="number" value="1" style="width:6em"> <label class="check"><input id="p-randomSeed" type="checkbox" checked> <span data-i18n="newSeedEachRestart"></span></label></span></div>
+    <div class="field compact"><label class="label" data-i18n="temperature"></label><input class="input input-sm" id="p-temperature" type="number" step="0.05" min="0.05"></div>
+    <div class="field compact"><label class="label" data-i18n="decisionWindow"></label><input class="input input-sm" id="p-decisionMs" type="number" step="50" min="100"></div>
+    <div class="field compact"><label class="label" data-i18n="learningWindow"></label><input class="input input-sm" id="p-learnMs" type="number" step="50" min="50"></div>
+    <div class="field compact"><label class="label" data-i18n="antePerGame"></label><input class="input input-sm" id="p-ante" type="number" step="0.5"></div>
+    <div class="field compact"><label class="label" data-i18n="startMoney"></label><input class="input input-sm" id="p-startMoney" type="number"></div>
+    <div class="field compact"><label class="label" data-i18n="payoffMatrix"></label><span class="row"><input class="input input-sm" id="p-T" type="number" style="width:3.4em"><input class="input input-sm" id="p-R" type="number" style="width:3.4em"><input class="input input-sm" id="p-P" type="number" style="width:3.4em"><input class="input input-sm" id="p-S" type="number" style="width:3.4em"></span></div>
   </details>
   <div class="row modal-actions"><span class="spacer"></span><button id="params-cancel" class="btn" data-i18n="cancel"></button><button id="restart" class="btn btn-primary" data-i18n="apply"></button></div>
 </div>
 </div>
 <main class="layout">
-  <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn btn-sm"><span data-i18n="back"></span> <span class="kbd">Esc</span></button></div></div></section>
+  <section id="arena"><div id="brain-loading" role="status" aria-live="polite" hidden></div><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn" data-i18n="back"></button></div></div></section>
 </main>
 </div>
   <aside class="side island island-pad">
@@ -63,14 +66,33 @@ app.innerHTML = `
     <section id="log" hidden><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
   </aside>`;
 const status = document.getElementById('status')!;
+const brainLoading = document.getElementById('brain-loading')!;
 const playBtn = document.getElementById('play') as HTMLButtonElement;
 const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
 const history: { round: number; coop: number }[] = [];
 let lastSnap: Snapshot | null = null;
 let playing = false, budget = Infinity, lastRender = 0;
+let finishedTracked = false;
+let rankingOrder: number[] = [];
+const frozenSlots = new Map<number, number>();
+let arenaRef: Arena | null = null;
+let loadingStatus: { key: Key; vars: Record<string, string | number> } = { key: 'starting', vars: {} };
+function showLoading(key: Key, vars: Record<string, string | number> = {}) {
+  loadingStatus = { key, vars };
+  status.textContent = '';
+  brainLoading.textContent = t(key, vars);
+  brainLoading.hidden = false;
+}
+function renderStatus(s: Snapshot) {
+  brainLoading.hidden = true;
+  status.textContent = t('statusLine', { r: s.round, c: (100 * s.coopRate).toFixed(0) })
+    + (currentShuffle === 'none' ? '' : ` · ${t('shuffledWiring')}`)
+    + (s.flies.filter((f) => f.alive).length < 2 ? ` · ${t('gameOver')}` : '');
+}
 
 /** Write every static string for the current language. */
 function applyStatic() {
+  document.documentElement.lang = getLang();
   document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n as any)));
   document.querySelectorAll<HTMLElement>('[data-i18n-html]').forEach((el) => (el.innerHTML = t(el.dataset.i18nHtml as any)));
   document.title = t('title');
@@ -82,8 +104,12 @@ function applyStatic() {
   document.getElementById('lang')!.textContent = getLang() === 'ru' ? 'EN' : 'RU';   // the link names the other language
 }
 function setPlayLabel() { playBtn.textContent = playing ? t('pause') : t('play'); }
-document.getElementById('lang')!.onclick = () => setLang(getLang() === 'ru' ? 'en' : 'ru');
-onLang(() => { applyStatic(); if (lastSnap) render(lastSnap); if (arenaRef && arenaRef.focused !== null) caption(arenaRef.focused); });
+document.getElementById('lang')!.onclick = () => { const lang = getLang() === 'ru' ? 'en' : 'ru'; setLang(lang); track('language_changed', { language: lang }); };
+onLang(() => {
+  applyStatic();
+  if (lastSnap) { arenaRef?.setTags(currentParams.lesions.map((l) => (l === 'none' ? '' : lesionLabel(l)))); render(lastSnap); renderStatus(lastSnap); }
+  else showLoading(loadingStatus.key, loadingStatus.vars);
+});
 applyStatic();
 
 /** Three tiny bars: cooperation on first meeting, after the opponent cooperated, after it defected. */
@@ -98,11 +124,11 @@ speedSeg.querySelectorAll('button').forEach((b) => (b.onclick = () => { speedX =
 const COOP = '#4CC9A4', DEFECT = '#E4572E', CELL_BG = '#232830';
 const targetRps = () => BASE_RPS * speedX;
 
-status.textContent = t('starting');
+showLoading('starting');
 const circuit = await Circuit.load();
-status.textContent = t('loadingSkeletons');
+showLoading('loadingSkeletons');
 const arena = await Arena.load(document.getElementById('arena')!, circuit, DEFAULT_GAME.nFlies);
-let arenaRef: Arena | null = arena;
+arenaRef = arena;
 const NUM_FIELDS = ['observeGain', 'temperature', 'trustBias', 'forgetPerRound', 'decisionMs', 'learnMs', 'ante', 'startMoney'] as const;
 function fillParams(p: typeof DEFAULT_GAME) { for (const k of NUM_FIELDS) $(`p-${k}`).value = String(p[k]); for (const k of ['T', 'R', 'P', 'S'] as const) $(`p-${k}`).value = String(p.payoff[k]); $('p-seed').value = String(p.seed); }
 function readParams(): typeof DEFAULT_GAME {
@@ -120,53 +146,62 @@ const paramsScrim = document.getElementById('params-scrim')!;
 let currentParams: typeof DEFAULT_GAME = DEFAULT_GAME; let currentShuffle: ShuffleMode = 'none';
 function openParams() { fillParams(currentParams); for (let i = 0; i < DEFAULT_GAME.nFlies; i++) $(`p-lesion-${i}`).value = currentParams.lesions[i] ?? 'none'; $('p-shuffle').value = currentShuffle; paramsScrim.hidden = false; }
 function closeParams() { paramsScrim.hidden = true; }
-document.getElementById('toggle-params')!.onclick = () => (paramsScrim.hidden ? openParams() : closeParams());
+document.getElementById('toggle-params')!.onclick = () => { if (paramsScrim.hidden) { openParams(); track('parameters_opened'); } else closeParams(); };
 document.getElementById('params-cancel')!.onclick = closeParams;
 paramsScrim.onclick = (e) => { if (e.target === paramsScrim) closeParams(); };
 const about = document.getElementById('about')!;
-document.getElementById('toggle-about')!.onclick = () => (about.hidden = !about.hidden);
+document.getElementById('toggle-about')!.onclick = () => { about.hidden = !about.hidden; if (!about.hidden) track('about_opened'); };
 document.getElementById('about-close')!.onclick = () => (about.hidden = true);
 about.onclick = (e) => { if (e.target === about) about.hidden = true; };
 addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') { about.hidden = true; closeParams(); } });
 
 let game: Game;
 async function startGame() {
-  playing = false; game?.dispose(); history.length = 0;
+  playing = false; game?.dispose(); lastSnap = null; history.length = 0; rankingOrder = []; frozenSlots.clear(); finishedTracked = false; arena.focus(null);
   if ($('p-randomSeed').checked) $('p-seed').value = String(1 + Math.floor(Math.random() * 1e6));
   const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode; currentParams = p; currentShuffle = shuffle;
-  status.textContent = t('spawning', { n: p.nFlies });
-  game = await Game.create(circuit, p, async (id, seed, lesion) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed, lesion); return f; }, () => (status.textContent = t('building')));
+  showLoading('spawning', { n: p.nFlies });
+  game = await Game.create(circuit, p, async (id, seed, lesion) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed, lesion); return f; }, () => showLoading('building'));
+  track('simulation_started', { mutations: p.lesions.filter((l) => l !== 'none').length, shuffled_wiring: shuffle !== 'none' });
   arena.setTags(p.lesions.map((l) => (l === 'none' ? '' : lesionLabel(l))));
-  render(game.snapshot()); status.textContent = t('statusLine', { r: 0, c: 0 }) + (shuffle === 'none' ? '' : ` · ${t('shuffledWiring')}`);
+  const initial = game.snapshot(); render(initial); renderStatus(initial);
 }
 document.getElementById('restart')!.onclick = () => { closeParams(); void startGame(); };
 const capEl = document.getElementById('caption')!, capText = document.getElementById('cap-text')!;
 function caption(b: number) {
-  const s = lastSnap; if (!s) return; const f = s.flies[b]; const m = s.movies[b]; const st = f.strategy;
-  const pct = (v: number | null) => (v === null ? '—' : Math.round(100 * v) + '%');
+  const s = lastSnap; if (!s) return; const f = s.flies[b]; const st = f.strategy;
+  const behavior = (label: string, value: number | null, n: number, tone: string) =>
+    `<div class="cap-behavior ${tone}"><span class="cap-behavior-label">${label}</span><strong>${value === null ? '—' : Math.round(100 * value) + '%'}</strong><span class="cap-behavior-sample">${value === null ? t('choiceNoData') : t('sampleGames', { n })}</span></div>`;
   const rec = [...s.last].reverse().find((r) => r.a === b || r.b === b);
-  let html = `<div class="cap-head"><span class="cap-name">${f.name}${f.lesion !== 'none' ? ` <span class="tag lesion">${lesionLabel(f.lesion)}</span>` : ''}</span><span class="cap-strat">${stratGlyph(st)} ${strategyLabel(st.label)}</span></div>
-    <div class="cap-stats">${f.money.toFixed(0)} ${t('money')} · ${f.games} ${t('games')} · ${t('cooperates')} ${f.games ? Math.round(100 * f.coops / f.games) : 0}%</div>
-    <div class="cap-stats muted">${t('firstMeeting')} ${pct(st.trust)} · ${t('afterC')} ${pct(st.reciprocity)} · ${t('afterD')} ${pct(st.forgiveness)}</div>`;
+  let html = `<div class="cap-head"><div class="cap-identity"><span class="cap-name">${f.name}</span>${f.lesion !== 'none' ? `<span class="tag lesion">${lesionLabel(f.lesion)}</span>` : ''}</div>${st.label === '…' ? '' : `<span class="cap-strat">${strategyLabel(st.label)}</span>`}</div>
+    <div class="cap-metrics">
+      <div><strong>${f.money.toFixed(0)}</strong><span>${t('money')}</span></div>
+      <div><strong>${f.games}</strong><span>${t('games')}</span></div>
+      <div><strong>${f.games ? Math.round(100 * f.coops / f.games) : 0}%</strong><span>${t('cooperates')}</span></div>
+    </div>
+    <section class="cap-section"><h3>${t('choiceRates')}</h3>
+      <div class="cap-behaviors">${behavior(t('afterC'), st.reciprocity, st.nAfterC, 'coop')}${behavior(t('afterD'), st.forgiveness, st.nAfterD, 'defect')}</div>
+    </section>`;
   if (rec) {
     const me = rec.a === b; const opp = me ? rec.b : rec.a; const myC = me ? rec.ca : rec.cb, oppC = me ? rec.cb : rec.ca, pay = me ? rec.pa : rec.pb, sc = me ? rec.scoreA : rec.scoreB, pc = me ? rec.pcA : rec.pcB;
-    const row = (k: string, v: string) => `<div class="cap-row"><span class="cap-k">${k}</span><span class="cap-v">${v}</span></div>`;
-    html += `<div class="cap-title">${t('lastGame', { r: rec.round, o: opp + 1 })}</div>
-      ${row(t('smells', { o: opp + 1 }), `${t('approachMinusAvoid')} <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b>`)}
-      ${row(t('decides'), `<b class="${myC ? 'c' : 'd'}">${myC ? t('decCoop') : t('decDefect')}</b> <span class="muted">p = ${pc.toFixed(2)}</span>`)}
-      ${row('F' + (opp + 1), `<b class="${oppC ? 'c' : 'd'}">${oppC ? t('decCoop') : t('decDefect')}</b>`)}
-      ${row(t('payoff'), `<b>${pay}</b> → ${pay >= 3 ? `<span class="pam">${t('reward')}</span>` : `<span class="ppl1">${t('punishment')}</span>`}`)}`;
+    html += `<section class="cap-section cap-last"><div class="cap-section-head"><h3>${t('lastGame')}</h3><span>${t('roundAgainst', { r: rec.round, o: opp + 1 })}</span></div>
+      <div class="cap-actions">
+        <div><span>${f.name}</span><strong class="${myC ? 'coop' : 'defect'}">${myC ? t('cooperated') : t('defected')}</strong></div>
+        <div><span>F${opp + 1}</span><strong class="${oppC ? 'coop' : 'defect'}">${oppC ? t('cooperated') : t('defected')}</strong></div>
+      </div>
+      <div class="cap-result"><span>${t('payoff')} <strong>${pay > 0 ? '+' : ''}${pay}</strong></span><span class="${game.payoffValence(pay) > 0 ? 'pam' : 'ppl1'}">${game.payoffValence(pay) > 0 ? t('reward') : t('punishment')}</span></div>
+      <div class="cap-brain"><span>${t('brainResponse')}</span><span>${t('approachMinusAvoid')} <b>${sc >= 0 ? '+' : ''}${sc.toFixed(2)}</b></span><span>${t('coopChance')} <b>${Math.round(pc * 100)}%</b></span></div>
+    </section>`;
   }
-  if (m && !m.decision) html += `<div class="cap-note muted">${t('movieNote')}</div>`;
   capText.innerHTML = html;
 }
-arena.onFocus = (b) => { capEl.hidden = b === null; if (b !== null) caption(b); };
+arena.onFocus = (b) => { capEl.hidden = b === null; if (b !== null) { caption(b); track('fly_focused', { fly: b + 1 }); } else track('fly_unfocused'); };
 document.getElementById('cap-back')!.onclick = () => arena.focus(null);
 await startGame();
 // ?autoplay=N starts N rounds immediately (used for headless smoke tests)
 const auto = new URLSearchParams(location.search).get('autoplay');
 
-playBtn.onclick = () => { if (playing) { playing = false; setPlayLabel(); return; } playing = true; setPlayLabel(); void loop(); };
+playBtn.onclick = () => { if (playing) { playing = false; track('simulation_paused', { round: game.round }); setPlayLabel(); return; } playing = true; track('simulation_played', { round: game.round, speed: speedX }); setPlayLabel(); void loop(); };
 async function loop() {
   while (playing && budget > 0) {
     const t0 = performance.now();
@@ -175,22 +210,33 @@ async function loop() {
     await game.playRound(); budget--;
     const s = game.snapshot(); history.push({ round: s.round, coop: s.recentCoopRate });
     const now = performance.now();
-    if (now - lastRender > 80 || budget === 0 || speedX <= 5) { render(s); lastRender = now; }
-    status.textContent = t('statusLine', { r: s.round, c: (100 * s.coopRate).toFixed(0) }) + (game.over ? ` · ${t('gameOver')}` : '');
+    if (now - lastRender > 80 || budget === 0 || speedX <= 5 || game.over) { render(s); lastRender = now; }
+    renderStatus(s);
     const wait = 1000 / targetRps() - (performance.now() - t0);
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   }
+  if (game.over && !finishedTracked) { track('simulation_finished', { rounds: game.round, games: game.gamesPlayed }); finishedTracked = true; }
   playing = false; setPlayLabel(); budget = Infinity;
 }
 if (auto) { $('p-randomSeed').checked = false; budget = Number(auto); speedX = Number(new URLSearchParams(location.search).get('speed') ?? 20); playBtn.click(); }
 
 function render(s: Snapshot) {
   lastSnap = s; arena.update(s); if (arena.focused !== null) caption(arena.focused);
-  const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
+  if (!rankingOrder.length) rankingOrder = [...s.flies].sort((a, b) => b.money - a.money || a.id - b.id).map((f) => f.id);
+  for (const f of s.flies) if (!f.alive && !frozenSlots.has(f.id)) frozenSlots.set(f.id, rankingOrder.indexOf(f.id));
+  const open = s.flies.filter((f) => f.alive).sort((a, b) => b.money - a.money || a.id - b.id);
+  const ordered: typeof s.flies = []; let next = 0;
+  for (let slot = 0; slot < s.flies.length; slot++) {
+    const fixed = [...frozenSlots].find(([, pos]) => pos === slot);
+    ordered.push(fixed ? s.flies[fixed[0]] : open[next++]);
+  }
+  rankingOrder = ordered.map((f) => f.id);
+  const flies = ordered; const max = Math.max(1, ...flies.map((f) => f.money));
   d3.select('#lb').selectAll('div.row-fly').data(flies, (d: any) => d.id).join('div').attr('class', (f) => `row-fly${f.alive ? '' : ' dead'}`).html((f) => {
     const cr = f.games ? f.coops / f.games : 0;
-    const tags = `${!f.alive ? `<span class="tag out">${t('out')}</span>` : ''}${f.lesion !== 'none' ? `<span class="tag lesion">${lesionLabel(f.lesion)}</span>` : ''}`;
-    const top = f.games || tags ? `<div class="r0"><span class="stats">${f.games ? t('stats', { c: (100 * cr).toFixed(0), b: f.betrayed }) : ''}</span><span class="tags">${tags}</span></div>` : '';
+    const tags = f.lesion !== 'none' ? `<span class="tag lesion">${lesionLabel(f.lesion)}</span>` : '';
+    const stats = [!f.alive ? t('roundsStat', { n: f.eliminatedRound ?? s.round }) : '', f.games ? t('stats', { c: (100 * cr).toFixed(0), b: f.betrayed }) : ''].filter(Boolean).join(' · ');
+    const top = stats || tags ? `<div class="r0"><span class="stats">${stats}</span><span class="tags">${tags}</span></div>` : '';
     const bottom = f.games ? `<div class="r2"><span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${strategyLabel(f.strategy.label)}</span></span></div>` : '';
     return `${top}<div class="r1"><span class="name">${f.name}</span>
         <span class="meter meter-ok"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span><span class="num">${f.money.toFixed(0)}</span></div>${bottom}`;
@@ -212,5 +258,5 @@ function render(s: Snapshot) {
   const fly = (id: number, c: boolean, p: number) => `<span class="${c ? 'c' : 'd'}" title="${c ? t('cooperated') : t('defected')} · ${t('pCoop')} = ${p.toFixed(2)}">F${id + 1}</span>`;
   const hasLog = s.games > 0; document.getElementById('log')!.hidden = !hasLog; document.getElementById('log-divider')!.hidden = !hasLog;
   document.getElementById('lg')!.innerHTML = s.last.slice().reverse().map((g) =>
-    `<div class="lrow"><span class="muted">R${g.round}</span><span>${fly(g.a, g.ca, g.pcA)} vs ${fly(g.b, g.cb, g.pcB)}</span><span class="muted">→</span><span>${g.pa}/${g.pb}</span></div>`).join('');
+    `<div class="lrow"><span class="muted">${t('roundShort', { r: g.round })}</span><span>${fly(g.a, g.ca, g.pcA)} ${t('versus')} ${fly(g.b, g.cb, g.pcB)}</span><span class="muted">→</span><span>${g.pa}/${g.pb}</span></div>`).join('');
 }

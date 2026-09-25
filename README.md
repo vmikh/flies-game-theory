@@ -1,6 +1,6 @@
 # flies-game-theory
 
-Nine simulated fruit-fly brains play an iterated prisoner's dilemma against each other.
+Eight simulated fruit-fly brains play an iterated prisoner's dilemma against each other.
 Each "fly" is the mushroom body circuit of the real *Drosophila* connectome
 ([Male CNS v1.0](https://male-cns.janelia.org/), HHMI Janelia / Google Research, CC-BY 4.0)
 simulated as leaky integrate-and-fire neurons with dopamine-gated plasticity.
@@ -22,8 +22,12 @@ Headless checks (Node 24): `node --experimental-transform-types scripts/run_game
 
 ## Deploy
 
-Vercel: import the GitHub repo, framework preset "Vite", no environment variables needed (`vercel.json` sets the build and caching).
+Vercel: import the GitHub repo, framework preset "Vite" (`vercel.json` sets the build and caching).
 `public/data/` holds the packed circuit (0.8 MB) and skeletons (11 MB, ~3.4 MB compressed); both are committed.
+
+## Analytics
+
+PostHog is optional until a project token is configured. Copy `.env.example` to `.env.local` for local development, or set `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST` in Vercel and redeploy. Use the project token and matching ingestion host from PostHog Project settings (US or EU). The token is public by design; do not use a personal API key. Without a token, the analytics module makes no requests. The app sends pageviews, page exits, click autocapture, and named events for simulation controls, focus, language, and completion. Session recording is disabled.
 
 ## Layout
 

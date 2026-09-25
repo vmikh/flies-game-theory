@@ -5,5 +5,7 @@ data/derived/
 dist/
 .DS_Store
 .env
+.env.*
+!.env.example
 smoke.png
 smoke-main.png
