@@ -156,15 +156,23 @@ about.onclick = (e) => { if (e.target === about) about.hidden = true; };
 addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') { about.hidden = true; closeParams(); } });
 
 let game: Game;
+let loopTask: Promise<void> | null = null;
+let starting = false;
+let gameVersion = 0;
 async function startGame() {
-  playing = false; game?.dispose(); lastSnap = null; history.length = 0; rankingOrder = []; frozenSlots.clear(); finishedTracked = false; arena.focus(null);
-  if ($('p-randomSeed').checked) $('p-seed').value = String(1 + Math.floor(Math.random() * 1e6));
-  const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode; currentParams = p; currentShuffle = shuffle;
-  showLoading('spawning', { n: p.nFlies });
-  game = await Game.create(circuit, p, async (id, seed, lesion) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed, lesion); return f; }, () => showLoading('building'));
-  track('simulation_started', { mutations: p.lesions.filter((l) => l !== 'none').length, shuffled_wiring: shuffle !== 'none' });
-  arena.setTags(p.lesions.map((l) => (l === 'none' ? '' : lesionLabel(l))));
-  const initial = game.snapshot(); render(initial); renderStatus(initial);
+  if (starting) return;
+  starting = true; gameVersion++; playing = false; setPlayLabel();
+  try {
+    if (loopTask) await loopTask.catch(() => {}); // finish the current round before releasing its workers
+    game?.dispose(); lastSnap = null; history.length = 0; rankingOrder = []; frozenSlots.clear(); finishedTracked = false; arena.focus(null);
+    if ($('p-randomSeed').checked) $('p-seed').value = String(1 + Math.floor(Math.random() * 1e6));
+    const p = readParams(); const shuffle = $('p-shuffle').value as ShuffleMode; currentParams = p; currentShuffle = shuffle;
+    showLoading('spawning', { n: p.nFlies });
+    game = await Game.create(circuit, p, async (id, seed, lesion) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed, lesion); return f; }, () => showLoading('building'));
+    track('simulation_started', { mutations: p.lesions.filter((l) => l !== 'none').length, shuffled_wiring: shuffle !== 'none' });
+    arena.setTags(p.lesions.map((l) => (l === 'none' ? '' : lesionLabel(l))));
+    const initial = game.snapshot(); render(initial); renderStatus(initial);
+  } finally { starting = false; }
 }
 document.getElementById('restart')!.onclick = () => { closeParams(); void startGame(); };
 const capEl = document.getElementById('caption')!, capText = document.getElementById('cap-text')!;
@@ -201,7 +209,15 @@ await startGame();
 // ?autoplay=N starts N rounds immediately (used for headless smoke tests)
 const auto = new URLSearchParams(location.search).get('autoplay');
 
-playBtn.onclick = () => { if (playing) { playing = false; track('simulation_paused', { round: game.round }); setPlayLabel(); return; } playing = true; track('simulation_played', { round: game.round, speed: speedX }); setPlayLabel(); void loop(); };
+playBtn.onclick = async () => {
+  if (playing) { playing = false; track('simulation_paused', { round: game.round }); setPlayLabel(); return; }
+  const version = gameVersion;
+  if (loopTask) await loopTask.catch(() => {});
+  if (starting || version !== gameVersion) return;
+  playing = true; track('simulation_played', { round: game.round, speed: speedX }); setPlayLabel();
+  const task = loop(); loopTask = task;
+  void task.then(() => { if (loopTask === task) loopTask = null; }, (err) => { if (loopTask === task) loopTask = null; playing = false; setPlayLabel(); console.error(err); });
+};
 async function loop() {
   while (playing && budget > 0) {
     const t0 = performance.now();

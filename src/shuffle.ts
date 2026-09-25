@@ -1,8 +1,9 @@
 /**
- * Control circuits. 'class': degree-preserving rewiring within class pairs — every edge keeps its
- * presynaptic neuron, its synapse count and the class of its target, but the target is redrawn
- * within that class with probability ∝ the target's original in-degree from that source class.
- * Tests whether the *specific* wiring matters beyond the class-level architecture.
+ * Control circuits. 'class': class-conditioned stochastic rewiring. Each sampled edge keeps its
+ * presynaptic neuron, synapse count and target class. Targets are redrawn with replacement with
+ * probability proportional to their original weighted in-degree from that source class. Duplicate
+ * targets from the same source are merged, so exact in-degrees and edge counts are not preserved.
+ * This is an approximate control for the specific wiring beyond class-level architecture.
  * 'full': targets redrawn among all neurons (∝ total in-degree), architecture destroyed.
  */
 import { Circuit } from './circuit.ts';

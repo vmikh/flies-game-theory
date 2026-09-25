@@ -28,6 +28,13 @@ try {
     for (let i = 0; i < 60; i++) { await sleep(500); const r = await send('Runtime.evaluate', { expression: "document.getElementById('status')?.textContent ?? ''" }); if (/(round|раунд) 0/.test(r.result.value)) break; }
     await send('Runtime.evaluate', { expression: "document.getElementById('play').click()" });
   }
+  if (process.env.RESTART_DURING_PLAY) {
+    await sleep(100);
+    await send('Runtime.evaluate', { expression: "document.getElementById('restart').click()" });
+    for (let i = 0; i < 60; i++) { await sleep(500); const r = await send('Runtime.evaluate', { expression: "!document.getElementById('brain-loading').hidden" }); if (r.result.value) break; }
+    for (let i = 0; i < 60; i++) { await sleep(500); const r = await send('Runtime.evaluate', { expression: "({ loading: !document.getElementById('brain-loading').hidden, status: document.getElementById('status').textContent })", returnByValue: true }); if (!r.result.value.loading && /(round|раунд) 0/.test(r.result.value.status)) break; }
+    await send('Runtime.evaluate', { expression: "document.getElementById('play').click()" });
+  }
   const t0 = Date.now(); let status = '';
   while (Date.now() - t0 < waitS * 1000) { await sleep(1000); const r = await send('Runtime.evaluate', { expression: "document.getElementById('status')?.textContent ?? ''" }); status = r.result.value; if (/game over|игра окончена/.test(status) || (/(round|раунд) \d+/.test(status) && /Play|Pause|Играть|Пауза/.test((await send('Runtime.evaluate', { expression: "document.getElementById('play')?.textContent" })).result.value) && Number(status.match(/(?:round|раунд) (\d+)/)![1]) >= rounds)) break; }
   console.log(`status after ${((Date.now() - t0) / 1000).toFixed(0)}s: ${status}`);

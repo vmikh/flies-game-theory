@@ -160,10 +160,10 @@ export class Game {
   }
   async score(f: Fly, opp: number) { const { c, all, frames } = await this.counts(f, opp, this.recordFrames); f.activity = all; f.lastOpp = opp; f.movie = { opp, decision: frames ?? null, teach: null, dan: null, valence: 0 }; return this.toScore(f, opp, c); }
 
-  async decide(f: Fly, opp: number): Promise<{ coop: boolean; score: number; pc: number }> {
+  async decide(f: Fly, opp: number, draw = this.rng()): Promise<{ coop: boolean; score: number; pc: number }> {
     const s = await this.score(f, opp); f.trust[opp] = s;
     const pc = 1 / (1 + Math.exp(-(s + this.p.trustBias) / this.p.temperature));
-    return { coop: this.rng() < pc, score: s, pc };
+    return { coop: draw < pc, score: s, pc };
   }
 
   /** Present odour with dopamine. valence>0 → PAM at rate ∝ valence, <0 → PPL1. */
@@ -194,8 +194,10 @@ export class Game {
 
   async playRound(): Promise<GameRecord[]> {
     const pairs = this.pairings(); const { T, R, P, S } = this.p.payoff;
+    // Draw in pairing order before asynchronous brain reads: worker completion order must not change a seeded run.
+    const draws = pairs.map(() => [this.rng(), this.rng()]);
     // 1. decisions, all flies in parallel
-    const dec = await Promise.all(pairs.map(([a, b]) => Promise.all([this.decide(this.flies[a], b), this.decide(this.flies[b], a)])));
+    const dec = await Promise.all(pairs.map(([a, b], i) => Promise.all([this.decide(this.flies[a], b, draws[i][0]), this.decide(this.flies[b], a, draws[i][1])])));
     // 2. payoffs + bookkeeping
     const recs: GameRecord[] = []; const tasks = new Map<number, (() => Promise<void>)[]>(); const q = (id: number, t: () => Promise<void>) => (tasks.get(id) ?? tasks.set(id, []).get(id)!).push(t);
     pairs.forEach(([ia, ib], k) => {
