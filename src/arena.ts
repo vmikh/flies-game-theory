@@ -117,6 +117,7 @@ export class Arena {
       e.mat.color.set(this.outcomeColor(p.outcome)); e.mat.linewidth = 0.5 + Math.min(6, p.games) * 0.25; e.mat.opacity = 0.16 + Math.min(1, p.games / 8) * 0.3;
       if (p.lastRound === s.round - 1) { const g = new LineGeometry(); g.setPositions([...this.anchors[p.a].toArray(), ...this.anchors[p.b].toArray()]); const mat = new LineMaterial({ color: this.outcomeColor(s.last.find((r) => (r.a === p.a && r.b === p.b) || (r.a === p.b && r.b === p.a))?.ca === undefined ? p.outcome : this.recOutcome(s.last.find((r) => (r.a === p.a && r.b === p.b) || (r.a === p.b && r.b === p.a))!)), linewidth: 2.2, transparent: true, opacity: 0.95, depthTest: false }); mat.resolution.copy(this.resolution); const line = new Line2(g, mat); this.graph.add(line); this.flashes.push({ obj: line, mat, born: now }); }
     }
+    this.dead = s.flies.map((f) => !f.alive);
     for (let b = 0; b < this.nBrains; b++) { const f = s.flies[b]; this.labels[b].textContent = `${f.name} · ${f.money.toFixed(0)}${this.tags[b] ? ' · ' + this.tags[b] : ''}`; this.labels[b].classList.toggle('dead', !f.alive); }
   }
   private recOutcome(r: { ca: boolean; cb: boolean }) { return r.ca && r.cb ? 1 : !r.ca && !r.cb ? -1 : 0; }
@@ -146,7 +147,7 @@ export class Arena {
   }
   /** Restart the brain's last movie from the beginning. */
   replay(b: number) { const pb = this.playback[b]; if (pb) pb.t0 = performance.now(); else if (this.lastMovie[b]) this.playback[b] = { movie: this.lastMovie[b]!, t0: performance.now() }; }
-  lastMovie: (FlyMovie | null)[] = []; tags: string[] = [];
+  lastMovie: (FlyMovie | null)[] = []; tags: string[] = []; dead: boolean[] = [];
   setTags(t: string[]) { this.tags = t.map((x) => (x === 'intact' ? '' : x)); }
 
   private loop = () => {
@@ -158,7 +159,7 @@ export class Arena {
     this.actTex.needsUpdate = true;
     for (let i = this.flashes.length - 1; i >= 0; i--) { const f = this.flashes[i]; const age = (now - f.born) / 1000; f.mat.opacity = Math.max(0, 0.95 - age * 0.45); if (age > 2.2) { this.graph.remove(f.obj); f.obj.geometry.dispose(); f.mat.dispose(); this.flashes.splice(i, 1); } }
     if (this.focused !== null || this.camGoal) { this.controls.target.lerp(this.camGoal.target, 1 - Math.exp(-dt * 4)); this.camera.position.lerp(this.camGoal.pos, 1 - Math.exp(-dt * 4)); }
-    for (let b = 0; b < this.nBrains; b++) { const u = (this.brains[b].material as THREE.ShaderMaterial).uniforms.uDim; const goal = this.focused === null || this.focused === b ? 1 : 0.12; u.value += (goal - u.value) * (1 - Math.exp(-dt * 6)); }
+    for (let b = 0; b < this.nBrains; b++) { const u = (this.brains[b].material as THREE.ShaderMaterial).uniforms.uDim; const goal = (this.focused === null || this.focused === b ? 1 : 0.12) * (this.dead[b] ? 0.2 : 1); u.value += (goal - u.value) * (1 - Math.exp(-dt * 6)); }
     this.graph.visible = this.focused === null;
     this.controls.update();
     // pass 1: brains into HDR (additive); pass 2: tone map to screen; pass 3: graph + overlays on top

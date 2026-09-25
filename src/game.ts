@@ -189,6 +189,9 @@ export class Game {
     return pairs;
   }
 
+  get aliveCount() { return this.flies.filter((f) => f.alive).length; }
+  get over() { return this.aliveCount < 2; }
+
   async playRound(): Promise<GameRecord[]> {
     const pairs = this.pairings(); const { T, R, P, S } = this.p.payoff;
     // 1. decisions, all flies in parallel
@@ -220,13 +223,10 @@ export class Game {
     }
     await Promise.all([...tasks.values()].map(async (list) => { for (const t of list) await t(); }));
     this.log.push(...recs);
-    // 4. bankruptcy → replaced by a mutated clone of the current leader
-    for (const f of this.flies.filter((x) => x.alive)) if (f.money <= 0) {
-      f.alive = false; const leader = this.flies.filter((g) => g.alive).sort((x, y) => y.money - x.money)[0];
-      if (leader) { const nf = await this.newFly(f.id, leader.lineage, this.round + 1, leader); f.be.dispose(); this.flies[f.id] = nf; }
-    }
+    // 4. bankruptcy is final: the fly leaves the table with 0, its brain is released, its record stays
+    for (const f of this.flies.filter((x) => x.alive)) if (f.money <= 0) { f.alive = false; f.money = 0; f.be.dispose(); }
     await Promise.all(this.flies.filter((f) => f.alive).map((f) => f.be.forget(this.p.forgetPerRound)));
-    this.round++;
+    if (pairs.length) this.round++;
     return recs;
   }
 
@@ -242,5 +242,5 @@ export class Game {
     };
   }
 
-  dispose() { for (const f of this.flies) f.be.dispose(); }
+  dispose() { for (const f of this.flies) if (f.alive) f.be.dispose(); }
 }

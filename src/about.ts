@@ -17,7 +17,7 @@ export function aboutHtml(lang: Lang): string {
 <p><b>Решение.</b> Сигнал идёт через центр памяти, грибовидное тело, к выходным нейронам двух групп: приближение и избегание. Перевес приближения это сотрудничество, избегания предательство. К незнакомцу муха равнодушна, первый ход почти случайный.</p>
 <p><b>Выплата.</b> Обе сотрудничали: по 3 очка. Предала сотрудничавшую: 5 и 0. Обе предали: по 1. Хорошая выплата включает дофаминовые нейроны награды, как сахар; плохая нейроны наказания, как удар током. Соперник в этот момент ещё «пахнет», и мозг связывает одно с другим.</p>
 <p><b>Слухи.</b> Наблюдатели получают те же сигналы на каждого игрока, только слабее. Так складывается репутация.</p>
-<p><b>Выбывание.</b> Муха без очков выбывает, её место занимает копия лидера с его памятью.</p>
+<p><b>Выбывание.</b> Муха без очков выбывает насовсем.</p>
 <p><b>Стратегии.</b> Никто их не задаёт. По частоте сотрудничества при первой встрече, после честности и после обмана муха получает имя: «око за око», «всегда сотрудничает» и так далее.</p>
 <h3>Под капотом</h3>
 <ul>
@@ -51,7 +51,7 @@ ${a(L.google, 'Анонс Google Research')}.</li>
 <p><b>Decision.</b> The signal runs through the memory centre, the mushroom body, to two groups of output neurons: approach and avoidance. Approach wins: cooperate. Avoidance wins: defect. A stranger leaves the fly indifferent, so the first move is near random.</p>
 <p><b>Payout.</b> Both cooperate: 3 each. Defect against a cooperator: 5 and 0. Both defect: 1 each. A good payout switches on the reward dopamine neurons, like sugar; a bad one the punishment neurons, like an electric shock. The opponent still "smells" at that moment, and the brain ties the two together.</p>
 <p><b>Gossip.</b> Observers receive the same signals for each player, only weaker. That is how reputation forms.</p>
-<p><b>Dropping out.</b> A fly with no points left drops out; a copy of the leader, memory included, takes its place.</p>
+<p><b>Dropping out.</b> A fly with no points left is out for good.</p>
 <p><b>Strategies.</b> Nobody assigns them. From how often a fly cooperates on a first meeting, after fair play and after being cheated, it gets a name: "tit-for-tat", "always cooperates" and so on.</p>
 <h3>Under the hood</h3>
 <ul>

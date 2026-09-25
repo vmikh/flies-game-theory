@@ -84,3 +84,4 @@ header button.icon { width: 30px; padding: 4px 0; text-align: center; font-weigh
 .about-card a { color: #5aa9e6; text-decoration: none; } .about-card a:hover { text-decoration: underline; }
 #lang button { min-width: 2.6em; }
 #about[hidden], #params[hidden], #caption[hidden], #advanced[hidden] { display: none !important; }
+.row .tag.out { color: var(--muted); }

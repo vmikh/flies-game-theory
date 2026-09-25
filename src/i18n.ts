@@ -45,7 +45,7 @@ const D = {
   cooperation: { en: 'Cooperation', ru: 'Сотрудничество' }, cooperationSub: { en: 'share of cooperative choices, last 200 decisions', ru: 'доля сотрудничества, последние 200 решений' },
   lastGames: { en: 'Last games', ru: 'Последние партии' },
   stats: { en: '{g} games · coop {c}% · betrayed {b}', ru: '{g} партий · сотр. {c}% · предана {b}' },
-  cloneOf: { en: 'clone of F{n}', ru: 'клон F{n}' },
+  out: { en: 'out', ru: 'выбыла' }, gameOver: { en: 'game over', ru: 'игра окончена' },
   cooperated: { en: 'cooperated', ru: 'сотрудничала' }, defected: { en: 'defected', ru: 'предала' }, pCoop: { en: 'p(cooperate)', ru: 'p(сотрудничать)' },
   // caption
   money: { en: 'money', ru: 'денег' }, games: { en: 'games', ru: 'партий' }, cooperates: { en: 'cooperates', ru: 'сотрудничает' },

@@ -42,7 +42,6 @@ app.innerHTML = `
     <div class="prow"><label>learning window, ms</label><input id="p-learnMs" type="number" step="50" min="50"></div>
     <div class="prow"><label>ante per game</label><input id="p-ante" type="number" step="0.5"></div>
     <div class="prow"><label>start money</label><input id="p-startMoney" type="number"></div>
-    <div class="prow"><label>clone jitter</label><input id="p-cloneJitter" type="number" step="0.05" min="0"></div>
     <div class="prow"><label>payoff T / R / P / S</label><span><input id="p-T" type="number" class="short"> <input id="p-R" type="number" class="short"> <input id="p-P" type="number" class="short"> <input id="p-S" type="number" class="short"></span></div>
   </details>
   <button id="restart" data-i18n="restart"></button>
@@ -95,7 +94,7 @@ const circuit = await Circuit.load();
 status.textContent = t('loadingSkeletons');
 const arena = await Arena.load(document.getElementById('arena')!, circuit, DEFAULT_GAME.nFlies);
 let arenaRef: Arena | null = arena;
-const NUM_FIELDS = ['observeGain', 'temperature', 'trustBias', 'forgetPerRound', 'decisionMs', 'learnMs', 'ante', 'startMoney', 'cloneJitter'] as const;
+const NUM_FIELDS = ['observeGain', 'temperature', 'trustBias', 'forgetPerRound', 'decisionMs', 'learnMs', 'ante', 'startMoney'] as const;
 function fillParams(p: typeof DEFAULT_GAME) { for (const k of NUM_FIELDS) $(`p-${k}`).value = String(p[k]); for (const k of ['T', 'R', 'P', 'S'] as const) $(`p-${k}`).value = String(p.payoff[k]); $('p-seed').value = String(p.seed); }
 function readParams(): typeof DEFAULT_GAME {
   const p: any = { ...DEFAULT_GAME, payoff: { ...DEFAULT_GAME.payoff } };
@@ -157,11 +156,12 @@ async function loop() {
   while (playing && budget > 0) {
     const t0 = performance.now();
     game.recordFrames = speedX <= 2;   // activity movies only when slow enough to watch
+    if (game.over) { playing = false; break; }
     await game.playRound(); budget--;
     const s = game.snapshot(); history.push({ round: s.round, coop: s.recentCoopRate });
     const now = performance.now();
     if (now - lastRender > 80 || budget === 0 || speedX <= 5) { render(s); lastRender = now; }
-    status.textContent = t('statusLine', { r: s.round, g: s.games, c: (100 * s.coopRate).toFixed(0) }) + (speedX >= 20 ? ` · ${t('roundsPerSec', { v: (1000 / (now - t0)).toFixed(1) })}` : '');
+    status.textContent = t('statusLine', { r: s.round, g: s.games, c: (100 * s.coopRate).toFixed(0) }) + (speedX >= 20 ? ` · ${t('roundsPerSec', { v: (1000 / (now - t0)).toFixed(1) })}` : '') + (game.over ? ` · ${t('gameOver')}` : '');
     const wait = 1000 / targetRps() - (performance.now() - t0);
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   }
@@ -174,7 +174,7 @@ function render(s: Snapshot) {
   const flies = [...s.flies].sort((a, b) => b.money - a.money); const max = Math.max(1, ...flies.map((f) => f.money));
   d3.select('#lb').selectAll('div.row').data(flies, (d: any) => d.id).join('div').attr('class', (f) => `row${f.alive ? '' : ' dead'}`).html((f) => {
     const cr = f.games ? f.coops / f.games : 0;
-    const tags = `${f.lineage !== f.id ? `<span class="tag">${t('cloneOf', { n: f.lineage + 1 })}</span>` : ''}${f.lesion !== 'none' ? `<span class="tag lesion">${lesionLabel(f.lesion)}</span>` : ''}`;
+    const tags = `${!f.alive ? `<span class="tag out">${t('out')}</span>` : ''}${f.lesion !== 'none' ? `<span class="tag lesion">${lesionLabel(f.lesion)}</span>` : ''}`;
     return `<div class="r1"><span class="name">${f.name}</span>
         <span class="bar"><i style="width:${(100 * Math.max(0, f.money)) / max}%"></i></span><span class="num">${f.money.toFixed(0)}</span></div>
       <div class="r2"><span class="strat">${stratGlyph(f.strategy)}<span class="strat-label">${strategyLabel(f.strategy.label)}</span>${tags}</span>
