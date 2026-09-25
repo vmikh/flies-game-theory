@@ -10,7 +10,7 @@ html, body, #app { height: 100%; }
 .topbar { flex: none; height: 56px; display: flex; align-items: center; gap: var(--mp-3); padding: 0 var(--island-pad); background: transparent; }
 .topbar h1 { font-size: var(--fs-lg); font-weight: var(--fw-semibold); white-space: nowrap; }
 .topbar .status { font-size: var(--fs-meta); color: var(--c-fg-3); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.topbar .seg > button { min-width: 40px; }
+.topbar .seg > button { min-width: 44px; }
 
 /* main area */
 .layout { flex: 1; display: flex; min-height: 0; }

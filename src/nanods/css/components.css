@@ -13,12 +13,13 @@
 .btn-lg { height: var(--h-control-lg); padding: 0 var(--mp-4); font-size: var(--fs-body); }
 .btn-block { width: 100%; }
 
-/* segmented control ------------------------------------------------------ */
-.seg { display: inline-flex; padding: var(--mp-05); background: var(--c-surface-2); border-radius: var(--rd-2); gap: var(--mp-05); }
-.seg > button { height: 28px; min-width: 36px; padding: 0 var(--mp-25); border: 0; border-radius: calc(var(--rd-2) - var(--mp-05)); background: transparent; color: var(--c-fg-2); font-size: var(--fs-ui); cursor: pointer; }
-.seg > button:hover { color: var(--c-fg); } .seg > button:active { transform: scale(.96); }
+/* segmented control: same height, radius and type as .btn; the selected item fills to the edges ---- */
+.seg { display: inline-flex; padding: 0; gap: 0; background: var(--c-surface-2); border-radius: var(--rd-2); overflow: hidden; }
+.seg > button { height: var(--h-control); min-width: 40px; padding: 0 var(--mp-3); border: 0; border-radius: var(--rd-2); background: transparent; color: var(--c-fg-2); font-size: var(--fs-ui); font-weight: var(--fw-medium); cursor: pointer; }
+.seg > button:hover { color: var(--c-fg); } .seg > button:active { transform: scale(.97); }
 .seg > button.on, .seg > button[aria-pressed="true"] { background: var(--c-light); color: var(--c-on-light); font-weight: var(--fw-semibold); }
-.seg-ghost { background: transparent; padding: 0; gap: var(--mp-1); } .seg-ghost > button.on { background: var(--c-surface-2); color: var(--c-fg); }
+.seg-sm > button { height: var(--h-control-sm); padding: 0 var(--mp-25); font-size: var(--fs-meta); border-radius: var(--rd-1); } .seg-sm { border-radius: var(--rd-1); }
+.seg-ghost { background: transparent; gap: var(--mp-1); overflow: visible; } .seg-ghost > button.on { background: var(--c-surface-2); color: var(--c-fg); }
 
 /* inputs ----------------------------------------------------------------- */
 .input, .select, .textarea { width: 100%; height: var(--h-control); padding: 0 var(--mp-3); border: 0; border-radius: var(--rd-2); background: var(--c-surface-2); color: var(--c-fg); font-size: var(--fs-ui); outline: 0; }
