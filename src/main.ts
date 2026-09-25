@@ -47,7 +47,7 @@ app.innerHTML = `
   <button id="restart" class="btn btn-primary btn-block" data-i18n="restart"></button>
 </aside>
 <main class="layout">
-  <section id="arena" class="island"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn btn-sm"><span data-i18n="back"></span> <span class="kbd">Esc</span></button></div></div></section>
+  <section id="arena"><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn btn-sm"><span data-i18n="back"></span> <span class="kbd">Esc</span></button></div></div></section>
   <aside class="side island island-pad">
     <section id="board"><h2 data-i18n="ranking"></h2><div id="lb"></div></section>
     <hr class="divider">

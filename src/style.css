@@ -13,7 +13,7 @@ html, body, #app { height: 100%; }
 
 /* main area */
 .layout { flex: 1; display: flex; gap: var(--gutter); min-height: 0; }
-#arena { flex: 1; }
+#arena { flex: 1; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
 #arena canvas { width: 100% !important; height: 100% !important; display: block; }
 .side { width: 340px; flex: none; display: flex; flex-direction: column; overflow: auto; }
 .side > section { flex: none; } .side > .divider { margin: var(--mp-4) 0; }
