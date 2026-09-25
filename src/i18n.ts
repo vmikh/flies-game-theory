@@ -3,7 +3,7 @@ export type Lang = 'en' | 'ru';
 type Entry = { en: string; ru: string };
 
 const D = {
-  title: { en: 'Flies · Game Theory', ru: 'Мухи · Теория игр' },
+  title: { en: 'Flies and game theory', ru: 'Мухи и теория игр' },
   starting: { en: 'starting…', ru: 'запуск…' },
   loadingSkeletons: { en: 'loading skeletons…', ru: 'загрузка скелетов…' },
   spawning: { en: 'spawning {n} brains…', ru: 'создаём {n} мозгов…' },

@@ -2,7 +2,8 @@
 @import "./nanods/nanods.css";
 
 :root { --coop: var(--c-ok); --defect: #E4572E; --mixed: var(--c-warn); }
-html, body, #app { height: 100%; }
+html, body { height: 100%; min-width: 1440px; min-height: 700px; overflow: auto; }   /* the layout is designed for 1440×700 and up; smaller windows scroll */
+#app { height: 100%; min-height: 700px; }
 #app { display: flex; gap: var(--gutter); padding: var(--gutter); position: relative; }
 .left { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 

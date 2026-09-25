@@ -19,6 +19,7 @@ try {
     if (m.method === 'Runtime.exceptionThrown') logs.push(`EXCEPTION: ${m.params.exceptionDetails.text} ${m.params.exceptionDetails.exception?.description ?? ''}`); };
   const send = (method: string, params: any = {}) => new Promise<any>((r) => { const i = ++id; pending.set(i, r); ws!.send(JSON.stringify({ id: i, method, params })); });
   await send('Runtime.enable'); await send('Page.enable');
+  if (process.env.OG) await send('Emulation.setDeviceMetricsOverride', { width: 1200, height: 630, deviceScaleFactor: 1, mobile: false });
   await send('Page.navigate', { url: `http://localhost:5173/?${process.env.LESION ? '' : `autoplay=${rounds}&`}speed=${speed}${process.env.LANG_UI ? '&lang=' + process.env.LANG_UI : ''}` });
   if (process.env.LESION) { // wait for the first game to be ready, set a mutation on F1 and restart
     for (let i = 0; i < 60; i++) { await sleep(500); const r = await send('Runtime.evaluate', { expression: "document.getElementById('status')?.textContent ?? ''" }); if (/(round|раунд) 0/.test(r.result.value)) break; }
@@ -33,6 +34,14 @@ try {
   if (process.env.ABOUT) { await send('Runtime.evaluate', { expression: "document.getElementById('toggle-about').click()" }); await sleep(300); }
   if (process.env.PANEL) { await send('Runtime.evaluate', { expression: "document.getElementById('toggle-params').click()" }); await sleep(300); }
   const lb = await send('Runtime.evaluate', { expression: "[...document.querySelectorAll('#lb .row')].map(r => r.textContent.replace(/\\s+/g,' ').trim()).join('\\n')" }); console.log(lb.result.value);
-  const shot = await send('Page.captureScreenshot', { format: 'png' }); const out = join(process.cwd(), 'smoke.png'); writeFileSync(out, Buffer.from(shot.data, 'base64')); console.log('screenshot', out);
+  if (process.env.OG) {   // social card: arena only, own frame, title in the corner
+    await send('Runtime.evaluate', { expression: `document.querySelector('.side').style.display='none'; document.querySelector('.topbar').style.display='none';
+      document.documentElement.style.minWidth='0'; document.documentElement.style.minHeight='0'; document.body.style.minWidth='0'; document.body.style.minHeight='0'; document.getElementById('app').style.minHeight='0';
+      const d = document.createElement('div'); d.style.cssText = 'position:absolute;left:40px;top:32px;z-index:9;font-family:Onest,system-ui,sans-serif;color:#F2F4F7';
+      d.innerHTML = '<div style="font-size:34px;font-weight:600;letter-spacing:-.01em">Flies and game theory</div><div style="font-size:17px;color:#A0A7B4;margin-top:6px">Eight real fruit-fly brains play an iterated prisoner\\'s dilemma</div>';
+      document.getElementById('arena').appendChild(d); dispatchEvent(new Event('resize'));` });
+    await sleep(1500);
+  }
+  const shot = await send('Page.captureScreenshot', { format: 'png' }); const out = join(process.cwd(), process.env.OG ? 'public/og.png' : 'smoke.png'); writeFileSync(out, Buffer.from(shot.data, 'base64')); console.log('screenshot', out);
   console.log(logs.length ? 'console:\n' + logs.join('\n') : 'console: clean');
 } finally { ws?.close(); chrome.kill('SIGKILL'); }
