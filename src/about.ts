@@ -10,7 +10,7 @@ const a = (href: string, text: string) => `<a href="${href}" target="_blank" rel
 
 export function aboutHtml(lang: Lang): string {
   if (lang === 'ru') return `
-<p>Восемь мозгов дрозофилы играют друг с другом в игру «сотрудничать или предать». Правил игры в них не заложено: мозги настоящие, взятые из карты всех нейронов мухи, и умеют они только то, что умеет живая муха.</p>
+<p>Восемь мух играют друг с другом в повторяющуюся дилемму заключённого. Игра в них не запрограммирована: у каждой настоящий мозг из карты всех нейронов дрозофилы, муха сама решает, сотрудничать или предать, и учится только так, как учится живая муха, через дофамин.</p>
 <h3>Как это устроено</h3>
 <p>В браузере нет никаких запахов. Всё взаимодействие построено на прямом воздействии на нейроны, и делается это так.</p>
 <ol>
@@ -47,7 +47,7 @@ ${a(L.google, 'Анонс Google Research')}.</li>
 </ul>
 <p class="muted">Это модель, ограниченная коннектомом, а не запись живой мухи. Проводка, числа синапсов и знаки медиаторов это данные; правило обучения, считывание решения и перевод выплат в дофамин это модельные допущения.</p>`;
   return `
-<p>Eight fruit-fly brains play a game of "cooperate or betray" against each other. The rules are not built into them: the brains are real, taken from the map of every neuron in a fly, and they can only do what a living fly can do.</p>
+<p>Eight flies play an iterated prisoner's dilemma against each other. Nothing about the game is programmed into them: each has a real brain from the map of every neuron in a fruit fly, decides for itself whether to cooperate or defect, and learns only the way a living fly learns, through dopamine.</p>
 <h3>How it works</h3>
 <p>There are no smells in the browser. Everything is done by acting on neurons directly, like this.</p>
 <ol>
