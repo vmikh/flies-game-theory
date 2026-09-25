@@ -15,6 +15,19 @@ export function aboutHtml(lang: Lang): string {
 <p>Модель сравнивает сигналы приближения и избегания. От них зависит <b>вероятность сотрудничества</b>. Если муха ничего не знает о сопернике и начальное доверие равно нулю, шанс составляет около 50%.</p>
 <p>После партии муха учится на полученных очках. Если её предали, шанс сотрудничать с другой мухой тоже может немного снизиться: сигналы разных соперников иногда задействуют одни и те же нейроны.</p>
 <p>Муха наблюдает и за чужими партиями: сотрудничество даёт положительный сигнал, а предательство даёт отрицательный. Так мнение о сопернике может появиться ещё до личной встречи. Силу влияния чужого опыта и скорость забывания можно менять в параметрах.</p>
+<h3>Что видно на экране</h3>
+<p>Каждый из восьми мозгов нарисован по форме настоящих нейронов из коннектома. Линии показывают ветви клеток. Клеток Кеньона нарисована примерно треть, иначе они закрывают всё остальное. Все мозги построены по одной схеме и различаются только памятью.</p>
+<ul>
+<li><span class="hl hl-pn">Синие</span> входные нейроны передают запах соперника.</li>
+<li><span class="hl hl-kc">Серые</span> клетки Кеньона хранят память о запахах.</li>
+<li><span class="hl hl-mbon">Жёлтые</span> выходные нейроны дают сигналы приближения и избегания.</li>
+<li><span class="hl hl-pam">Зелёные</span> дофаминовые нейроны PAM передают награду.</li>
+<li><span class="hl hl-ppl1">Красные</span> дофаминовые нейроны PPL1 и другие передают наказание.</li>
+<li><span class="hl hl-apl">Фиолетовый</span> нейрон APL тормозит клетки Кеньона.</li>
+</ul>
+<p>Свечение показывает последнюю партию мухи в замедленной записи. Сначала запах проходит от синих нейронов к жёлтым, и муха принимает решение. Затем вспыхивает дофамин. Зелёный означает, что соперник сотрудничал, красный означает предательство. Чем ярче клетка, тем чаще она срабатывала. На скорости выше 2× запись не ведётся.</p>
+<p>Линии между мозгами показывают историю пары. Зелёная линия означает, что мухи чаще сотрудничали. Красная означает, что они чаще предавали друг друга. Жёлтая означает смешанный исход. Чем больше партий сыграно, тем толще линия.</p>
+<p>На узких экранах показан один мозг. Волны в нём условные и не связаны с игрой.</p>
 <h3>Как читать результаты</h3>
 <p>По умолчанию каждая партия стоит мухе два очка. Когда очки заканчиваются, муха выбывает. Состав игроков со временем меняется, и это тоже влияет на результат.</p>
 <p>В полной версии процент вверху показывает долю сотрудничества <b>среди всех решений с начала игры</b>, в том числе решений выбывших мух. Даже с одинаковыми настройками результаты могут различаться. По одному запуску нельзя судить, значима ли разница между настройками. Для этого проведите серию независимых прогонов каждого варианта и сравните средний результат и разброс.</p>
@@ -35,6 +48,19 @@ export function aboutHtml(lang: Lang): string {
 <p>The model compares signals for approaching and avoiding an opponent. These set the <b>chance of cooperation</b>. With no information about an opponent and zero initial trust, the chance is about 50%.</p>
 <p>After a game, a fly learns from the points it earned. If another fly defects against it, its chance of cooperating with a different fly may also drop a little: the two opponents' signals can activate some of the same neurons.</p>
 <p>The fly also watches other games: cooperation gives it a positive signal, defection a negative one. It may have an opinion about an opponent before they have met. The effect of watching others and the rate of forgetting can be changed in the settings.</p>
+<h3>What you see</h3>
+<p>Each of the eight brains is drawn from the shapes of real neurons in the connectome. The lines are the branches of cells. About a third of the Kenyon cells are drawn, otherwise they would hide everything else. All brains share the same wiring and differ only in memory.</p>
+<ul>
+<li><span class="hl hl-pn">Blue</span> input neurons carry the opponent's odour.</li>
+<li><span class="hl hl-kc">Grey</span> Kenyon cells hold the memory of odours.</li>
+<li><span class="hl hl-mbon">Yellow</span> output neurons give the approach and avoid signals.</li>
+<li><span class="hl hl-pam">Green</span> PAM dopamine neurons carry reward.</li>
+<li><span class="hl hl-ppl1">Red</span> PPL1 and other dopamine neurons carry punishment.</li>
+<li>The <span class="hl hl-apl">purple</span> APL neuron inhibits the Kenyon cells.</li>
+</ul>
+<p>The glow replays the fly's last game in slow motion. First the odour travels from the blue neurons to the yellow ones, and the fly makes its choice. Then dopamine flashes. Green means the opponent cooperated, red means it defected. The brighter a cell, the more often it fired. Above 2× speed, no replay is recorded.</p>
+<p>The lines between brains show each pair's history. A green line means the two flies mostly cooperated. Red means they mostly defected against each other. Yellow means a mixed outcome. The more games played, the thicker the line.</p>
+<p>On narrow screens, a single brain is shown. Its waves are illustrative and not linked to any game.</p>
 <h3>Reading the results</h3>
 <p>By default, each game costs a fly two points. A fly leaves when its points run out. The mix of players changes over time, and that affects the results.</p>
 <p>In the full version, the percentage at the top shows the share of cooperative choices <b>since the start of the game</b>, including choices made by flies that later left. Results can differ even with the same settings. A single run cannot tell you whether a difference between settings is statistically meaningful. Run each set of settings several times and compare both the average and the spread of the results.</p>
