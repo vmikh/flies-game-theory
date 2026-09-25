@@ -128,7 +128,7 @@ async function startGame() {
   status.textContent = t('spawning', { n: p.nFlies });
   game = await Game.create(circuit, p, async (id, seed, lesion) => { const f = new RemoteFly(); await f.init(p.sim, seed, shuffle, p.seed, lesion); return f; }, () => (status.textContent = t('building')));
   arena.setTags(p.lesions.map((l) => (l === 'none' ? '' : lesionLabel(l))));
-  render(game.snapshot()); status.textContent = shuffle === 'none' ? '' : t('shuffledWiring');
+  render(game.snapshot()); status.textContent = t('statusLine', { r: 0, c: 0 }) + (shuffle === 'none' ? '' : ` · ${t('shuffledWiring')}`);
 }
 document.getElementById('restart')!.onclick = () => void startGame();
 const capEl = document.getElementById('caption')!, capText = document.getElementById('cap-text')!;
