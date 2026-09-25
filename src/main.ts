@@ -54,8 +54,8 @@ app.innerHTML = `
     <section id="trust"><h2 data-i18n="trust"></h2><div class="sub" data-i18n-html="trustSub"></div><svg id="tm"></svg></section>
     <hr class="divider">
     <section id="timeline"><h2 data-i18n="cooperation"></h2><div class="sub" data-i18n="cooperationSub"></div><svg id="tl"></svg></section>
-    <hr class="divider">
-    <section id="log"><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
+    <hr class="divider" id="log-divider" hidden>
+    <section id="log" hidden><h2 data-i18n="lastGames"></h2><div id="lg"></div></section>
   </aside>
 </main>`;
 const status = document.getElementById('status')!;
@@ -200,6 +200,7 @@ function render(s: Snapshot) {
   tl.selectAll('g.ax').data([0]).join('g').attr('class', 'ax').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(6) as any);
   tl.selectAll('g.ay').data([0]).join('g').attr('class', 'ay').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('.0%')) as any);
   const fly = (id: number, c: boolean, p: number) => `<span class="${c ? 'c' : 'd'}" title="${c ? t('cooperated') : t('defected')} · ${t('pCoop')} = ${p.toFixed(2)}">F${id + 1}</span>`;
+  const hasLog = s.games > 0; document.getElementById('log')!.hidden = !hasLog; document.getElementById('log-divider')!.hidden = !hasLog;
   document.getElementById('lg')!.innerHTML = s.last.slice().reverse().map((g) =>
     `<div class="lrow"><span class="muted">R${g.round}</span><span>${fly(g.a, g.ca, g.pcA)} vs ${fly(g.b, g.cb, g.pcB)}</span><span class="muted">→</span><span>${g.pa}/${g.pb}</span></div>`).join('');
 }
