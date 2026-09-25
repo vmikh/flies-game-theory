@@ -3,8 +3,7 @@ import type { Lang } from './i18n.ts';
 const L = {
   malecns: 'https://male-cns.janelia.org/', google: 'https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/',
   shiu: 'https://www.nature.com/articles/s41586-024-07763-9', aso: 'https://elifesciences.org/articles/04577', three: 'https://threejs.org/', d3: 'https://d3js.org/',
-  repo: 'https://github.com/vmikh/flies-game-theory', download: 'https://male-cns.janelia.org/download/', neuprint: 'https://neuprint.janelia.org/?dataset=male-cns%3Av1.0',
-  cell: 'https://www.cell.com/cell/fulltext/S0092-8674(26)00815-2',
+  repo: 'https://github.com/vmikh/flies-game-theory',
 };
 const a = (href: string, text: string) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 
@@ -27,13 +26,8 @@ ${a(L.google, 'Анонс Google Research')}.</li>
 <li><b>Обучение</b>: память хранится в связях между клетками Кеньона и выходными нейронами MBON. Когда одновременно активен запах и дофаминовый нейрон, связи, ведущие к тем MBON, которые этот нейрон обслуживает, ослабевают. Какие нейроны какие MBON обслуживают, взято прямо из коннектома, и эта карта совпадает с известной из экспериментов (${a(L.aso, 'Aso et al., eLife 2014')}): нейроны наказания PPL1 обслуживают MBON приближения, нейроны награды PAM обслуживают MBON избегания. Поэтому наказание глушит тягу к запаху, а награда глушит отвращение.</li>
 <li><b>Решение</b>: перед игрой мы запоминаем, как каждый мозг отвечает на каждый запах без всякого опыта. Дальше сравниваем ответ группы приближения и группы избегания с этим начальным: незнакомый запах даёт ноль и решение как монетка, полностью наказанный запах даёт избегание, полностью награждённый притяжение.</li>
 </ul>
-<h3>Ссылки</h3>
-<ul>
-<li>Исходный код: ${a(L.repo, 'github.com/vmikh/flies-game-theory')}</li>
-<li>Данные: ${a(L.download, 'загрузки Male CNS')} · ${a(L.neuprint, 'neuPrint')} · ${a(L.cell, 'Cell, 2026: половой диморфизм в полном коннектоме ЦНС самца')}</li>
-<li>Теория игр: Р. Аксельрод, <i>Эволюция кооперации</i> (1984)</li>
-</ul>
-<p class="muted">Это модель, ограниченная коннектомом, а не запись живой мухи. Проводка, числа синапсов и знаки медиаторов это данные; правило обучения, считывание решения и перевод выплат в дофамин это модельные допущения.</p>`;
+<p class="muted">Это модель, ограниченная коннектомом, а не запись живой мухи. Проводка, числа синапсов и знаки медиаторов это данные; правило обучения, считывание решения и перевод выплат в дофамин это модельные допущения.</p>
+<p class="muted">${a(L.repo, 'Исходный код')}</p>`;
   return `
 <p>Eight flies play an iterated prisoner's dilemma. Each has a real brain from the map of every neuron in a fruit fly, and it learns only through dopamine, like a living fly.</p>
 <h3>How it works</h3>
@@ -52,11 +46,6 @@ ${a(L.google, 'Google Research announcement')}.</li>
 <li><b>Learning</b>: memory lives in the connections between Kenyon cells and the output neurons, the MBONs. When an odour and a dopamine neuron are active at the same time, the connections leading to the MBONs that neuron serves weaken. Which neurons serve which MBONs comes straight from the connectome, and the map matches the one known from experiments (${a(L.aso, 'Aso et al., eLife 2014')}): punishment neurons PPL1 serve the approach MBONs, reward neurons PAM serve the avoidance MBONs. So punishment mutes the pull toward an odour, and reward mutes the aversion.</li>
 <li><b>Decision</b>: before the game we record how each brain responds to each odour with no experience at all. From then on we compare the response of the approach group and the avoidance group with that baseline: an unfamiliar odour gives zero and a coin-flip decision, a fully punished odour gives avoidance, a fully rewarded one attraction.</li>
 </ul>
-<h3>Links</h3>
-<ul>
-<li>Source code: ${a(L.repo, 'github.com/vmikh/flies-game-theory')}</li>
-<li>Data: ${a(L.download, 'Male CNS downloads')} · ${a(L.neuprint, 'neuPrint')} · ${a(L.cell, 'Cell, 2026: sexual dimorphism in the complete male CNS connectome')}</li>
-<li>Game theory: R. Axelrod, <i>The Evolution of Cooperation</i> (1984)</li>
-</ul>
-<p class="muted">This is a model constrained by the connectome, not a recording of a fly. Wiring, synapse counts and transmitter signs are data; the learning rule, the decision readout and the mapping of payoffs to dopamine are modelling choices.</p>`;
+<p class="muted">This is a model constrained by the connectome, not a recording of a fly. Wiring, synapse counts and transmitter signs are data; the learning rule, the decision readout and the mapping of payoffs to dopamine are modelling choices.</p>
+<p class="muted">${a(L.repo, 'Source code')}</p>`;
 }
