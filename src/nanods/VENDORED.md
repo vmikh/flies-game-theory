@@ -1,1 +1,1 @@
-# vendored from github.com/vmikh/nanods-2.0 (commit ff1a61a); do not edit here
+# vendored from github.com/vmikh/nanods-2.0 (commit d64f00f); do not edit here

@@ -8,6 +8,7 @@
 .btn:disabled { color: var(--c-fg-5); cursor: default; transform: none; background: var(--c-surface-2); }
 .btn-primary { background: var(--c-accent); color: var(--c-on-light); font-weight: var(--fw-semibold); } .btn-primary:hover { background: var(--c-accent-hover); }
 .btn-primary:disabled { background: var(--c-accent-soft); color: var(--c-fg-4); }
+.btn-link { background: transparent; padding: 0; height: auto; color: var(--c-accent); border-radius: var(--rd-line); } .btn-link:hover { background: transparent; color: var(--c-accent-hover); }
 .btn-sm { height: var(--h-control-sm); padding: 0 var(--mp-25); font-size: var(--fs-meta); border-radius: var(--rd-1); }
 .btn-lg { height: var(--h-control-lg); padding: 0 var(--mp-4); font-size: var(--fs-body); }
 .btn-block { width: 100%; }
