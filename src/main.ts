@@ -15,7 +15,47 @@ app.innerHTML = `
   <span class="seg" id="speed">${[1, 2, 5, 10, 20].map((x) => `<button data-x="${x}"${x === 1 ? ' class="on"' : ''}>${x}×</button>`).join('')}</span>
   <button id="play">▶ Play</button>
   <button id="toggle-params">Parameters</button>
+  <button id="toggle-about" class="icon" title="About this experiment">i</button>
 </header>
+<div id="about" hidden>
+  <div class="about-card">
+    <div class="about-head"><h2>Flies · Game Theory</h2><button id="about-close" class="icon">×</button></div>
+    <p>Eight fruit-fly brains play an iterated prisoner's dilemma against each other. Nothing about the game is programmed into them:
+    each fly decides by smelling its opponent and either approaching or avoiding, and learns only the way a real fly learns, through dopamine.</p>
+
+    <h3>The experiment</h3>
+    <p>Every fly is an <b>identity odour</b>: a private set of 7 glomeruli of the antennal lobe. Approaching the odour means <b>cooperate</b>, avoiding it means <b>defect</b>.
+    The payoff of each game (5 / 3 / 1 / 0) becomes dopamine: a good outcome drives the reward neurons (PAM), a bad one the punishment neurons (PPL1).
+    Flies also watch the other games and get a weaker dopamine signal about what each player did (gossip). A fly with no money left is replaced by a mutated clone of the leader.
+    Strategies are not written anywhere; they are read off the behaviour afterwards, Axelrod-style: how often a fly cooperates on a first meeting, after the opponent cooperated, after it defected.</p>
+
+    <h3>Under the hood</h3>
+    <ul>
+      <li><b>Wiring</b>: the mushroom body of the right hemisphere from the <a href="https://male-cns.janelia.org/" target="_blank">Male CNS v1.0 connectome</a> (HHMI Janelia FlyEM, Google Research, Cambridge, MRC LMB; CC-BY 4.0):
+        2 609 neurons, 118 773 connections with ≥3 synapses: projection neurons, 2 045 Kenyon cells, 49 MBONs, 170 dopaminergic neurons, APL, DPM. Neurotransmitter signs from the dataset's predictions.
+        <a href="https://research.google/blog/a-connectomics-milestone-mapping-the-complete-male-fruit-fly-brain/" target="_blank">Google Research announcement</a>.</li>
+      <li><b>Neurons</b>: leaky integrate-and-fire, 1 ms steps, 0.275 mV per synapse, parameters after <a href="https://www.nature.com/articles/s41586-024-07763-9" target="_blank">Shiu et al., Nature 2024</a> (whole-brain model of the female fly).
+        Each fly runs in its own Web Worker; 400 ms of brain time takes ~8 ms.</li>
+      <li><b>Odour coding</b>: PN→PN and KC→KC synapses are silenced and PN input per Kenyon cell is normalised; with that, each odour lights up 3–8 % of Kenyon cells and different odours overlap by ~5 %.</li>
+      <li><b>Learning</b>: dopamine-gated depression of Kenyon cell → MBON synapses in the compartments the active dopamine neurons innervate. The compartment map comes straight from the connectome
+        (PPL1 → MBON11/12/14…, PAM → MBON01–07, 09…), matching <a href="https://elifesciences.org/articles/04577" target="_blank">Aso et al., eLife 2014</a>. Only externally driven dopamine teaches; memories fade slowly.</li>
+      <li><b>Decision</b>: MBONs in PPL1 compartments push toward approach, MBONs in PAM compartments toward avoidance. The score is the change of each population relative to the fly's naive response to that odour,
+        so a stranger is a coin flip, a fully punished odour is avoided, a fully rewarded one approached.</li>
+      <li><b>Control</b>: with the wiring shuffled (same classes, same synapse counts, random targets) odour codes overlap 5× more, learning spills over to the wrong opponents and trust stops tracking behaviour.
+        The specific connectome does the work.</li>
+      <li><b>Drawing</b>: real EM skeletons of the same neurons (30 % of Kenyon cells), additive HDR rendering in <a href="https://threejs.org/" target="_blank">three.js</a>; panels in <a href="https://d3js.org/" target="_blank">d3</a>. At 1× and 2× the brains replay the actual spikes of each decision and the dopamine that followed.</li>
+    </ul>
+
+    <h3>Links</h3>
+    <ul>
+      <li>Source code: <a href="https://github.com/vmikh/flies-game-theory" target="_blank">github.com/vmikh/flies-game-theory</a></li>
+      <li>Data: <a href="https://male-cns.janelia.org/download/" target="_blank">Male CNS downloads</a> · <a href="https://neuprint.janelia.org/?dataset=male-cns%3Av1.0" target="_blank">neuPrint</a> · <a href="https://www.cell.com/cell/fulltext/S0092-8674(26)00815-2" target="_blank">Cell, 2026: sexual dimorphism in the complete male CNS connectome</a></li>
+      <li>Female brain for comparison: <a href="https://flywire.ai/" target="_blank">FlyWire</a></li>
+      <li>Game theory: R. Axelrod, <i>The Evolution of Cooperation</i> (1984)</li>
+    </ul>
+    <p class="muted">This is a model constrained by the connectome, not a recording of a fly. Wiring, synapse counts and transmitter signs are data; the learning rule, the decision readout and the mapping of payoffs to dopamine are modelling choices.</p>
+  </div>
+</div>
 <aside id="params" hidden>
   <h2>Experiment <span class="muted">(Restart applies)</span></h2>
   <div class="prow"><label>gossip <span class="hint">how much a fly learns from games it only watches; 0 = own experience only, 1 = as strong as its own</span></label><input id="p-observeGain" type="number" step="0.05" min="0" max="2"></div>
@@ -81,6 +121,11 @@ if (new URLSearchParams(location.search).has('advanced')) document.getElementByI
 const presetSel = $('p-payoffPreset') as unknown as HTMLSelectElement;
 presetSel.onchange = () => { const [T, R, P, S] = presetSel.value.split(',').map(Number); $('p-T').value = String(T); $('p-R').value = String(R); $('p-P').value = String(P); $('p-S').value = String(S); };
 document.getElementById('toggle-params')!.onclick = () => { const a = document.getElementById('params')!; a.hidden = !a.hidden; };
+const about = document.getElementById('about')!;
+document.getElementById('toggle-about')!.onclick = () => (about.hidden = !about.hidden);
+document.getElementById('about-close')!.onclick = () => (about.hidden = true);
+about.onclick = (e) => { if (e.target === about) about.hidden = true; };
+addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') about.hidden = true; });
 
 let game: Game;
 async function startGame() {

@@ -72,3 +72,13 @@ pre { margin: 0; font-size: 12px; color: var(--fg); }
 .cap-row { display: grid; grid-template-columns: 6.5em 1fr; gap: 8px; padding: 1px 0; } .cap-k { color: var(--muted); } .cap-v .c { color: #4cc9a4; } .cap-v .d { color: #e4572e; }
 .cap-note { margin-top: 6px; font-size: 11px; }
 .cap-btns { margin-top: 10px; }
+
+/* about */
+header button.icon { width: 30px; padding: 4px 0; text-align: center; font-weight: 700; font-family: ui-serif, Georgia, serif; font-style: italic; }
+#about { position: fixed; inset: 0; z-index: 20; background: rgba(5,6,9,0.7); display: flex; align-items: center; justify-content: center; padding: 24px; backdrop-filter: blur(4px); }
+.about-card { width: min(760px, 100%); max-height: 100%; overflow: auto; background: #10131a; border: 1px solid #2a2f3a; border-radius: 8px; padding: 20px 26px 22px; font-size: 14px; line-height: 1.55; }
+.about-head { display: flex; justify-content: space-between; align-items: center; } .about-head h2 { font-size: 18px; margin: 0; text-transform: none; letter-spacing: 0; color: var(--fg); }
+.about-card .icon { background: transparent; border: 0; color: var(--muted); font-size: 22px; cursor: pointer; }
+.about-card h3 { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 18px 0 6px; }
+.about-card p { margin: 6px 0; } .about-card ul { margin: 4px 0; padding-left: 18px; } .about-card li { margin: 4px 0; }
+.about-card a { color: #5aa9e6; text-decoration: none; } .about-card a:hover { text-decoration: underline; }
