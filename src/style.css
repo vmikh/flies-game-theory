@@ -82,6 +82,7 @@ html, body { height: 100%; min-width: 1350px; min-height: 700px; overflow: auto;
 .cap-section-head > span { color: var(--c-fg-4); font-size: var(--fs-sm); font-weight: var(--fw-semibold); white-space: nowrap; }
 .cap-actions > div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--mp-2); padding: var(--mp-2) var(--mp-25); border-radius: var(--rd-2); background: var(--c-surface-2); font-size: var(--fs-meta); }
 .cap-actions > div > span { color: var(--c-fg-4); }
+.cap-actions strong { font-weight: var(--fw-medium); }
 .cap-actions strong.coop, .cap-result .pam { color: var(--coop); } .cap-actions strong.defect, .cap-result .ppl1 { color: var(--defect); }
 .cap-result { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--mp-05) var(--mp-2); margin-top: var(--mp-2); padding: var(--mp-2) var(--mp-25); border-radius: var(--rd-2); background: var(--c-surface-2); font-size: var(--fs-meta); }
 .cap-result > span:first-child { color: var(--c-fg-4); } .cap-result strong { margin-left: var(--mp-1); color: var(--c-fg); font-variant-numeric: tabular-nums; }
