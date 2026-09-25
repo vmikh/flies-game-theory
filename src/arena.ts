@@ -40,7 +40,8 @@ export class Arena {
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); this.renderer.setClearColor(0x000000, 0); this.renderer.autoClear = false;
     container.appendChild(this.renderer.domElement);
     this.camera = new THREE.PerspectiveCamera(22, 1, 0.01, 100);
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement); this.controls.enableDamping = true; this.controls.dampingFactor = 0.08; this.controls.enablePan = false; this.controls.maxPolarAngle = Math.PI * 0.49; this.controls.minDistance = 3; this.controls.maxDistance = 14; this.controls.zoomSpeed = 0.8; this.controls.rotateSpeed = 0.7;
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement); this.controls.enableDamping = true; this.controls.dampingFactor = 0.08; this.controls.enablePan = false; this.controls.enabled = false;   // the ring is fixed; orbit and zoom only in close-up
+    this.controls.zoomSpeed = 0.8; this.controls.rotateSpeed = 0.7;
     this.act = new Float32Array(new ArrayBuffer(4 * this.nNeurons * nBrains));
     this.actTex = new THREE.DataTexture(this.act, this.nNeurons, nBrains, THREE.RedFormat, THREE.FloatType); this.actTex.magFilter = this.actTex.minFilter = THREE.NearestFilter; this.actTex.needsUpdate = true;
     const geo = this.buildGeometry(skelMeta, skelBin);
@@ -143,8 +144,8 @@ export class Arena {
   /** Close-up on brain b (null = back to the ring). Replays the brain's last movie slowly. */
   focus(b: number | null) {
     this.focused = b; this.flying = true; const c = this.controls;
-    if (b === null) { this.camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) }; c.minDistance = 3; c.maxDistance = 14; c.maxPolarAngle = Math.PI * 0.49; }
-    else { const a = this.anchors[b]; this.camGoal = { pos: a.clone().add(new THREE.Vector3(0, 0.95, 0.55)), target: a.clone() }; c.minDistance = 0.35; c.maxDistance = 2.4; c.maxPolarAngle = Math.PI; this.replay(b); }
+    if (b === null) { this.camGoal = { pos: new THREE.Vector3(0, 5.6, 4.0), target: new THREE.Vector3(0, 0, 0) }; c.enabled = false; }
+    else { const a = this.anchors[b]; this.camGoal = { pos: a.clone().add(new THREE.Vector3(0, 0.95, 0.55)), target: a.clone() }; c.enabled = true; c.minDistance = 0.35; c.maxDistance = 2.4; c.maxPolarAngle = Math.PI; this.replay(b); }
     this.onFocus?.(b);
   }
   /** Restart the brain's last movie from the beginning. */
