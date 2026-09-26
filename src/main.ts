@@ -61,7 +61,7 @@ app.innerHTML = `
 </div>
 </div>
 <main class="layout">
-  <section id="arena"><div id="dock"><button id="toggle-results" type="button" class="btn dock-info"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="6.5" r="1.75"/><rect x="10.75" y="10" width="2.5" height="9" rx="1.25"/></svg></button></div><div id="brain-loading" role="status" aria-live="polite" hidden></div><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn" data-i18n="back"></button></div></div></section>
+  <section id="arena"><div id="dock"><button id="toggle-results" type="button" class="btn dock-info"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-4,48a12,12,0,1,1-12,12A12,12,0,0,1,124,72Zm12,112a16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40a8,8,0,0,1,0,16Z"/></svg></button></div><div id="brain-loading" role="status" aria-live="polite" hidden></div><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn" data-i18n="back"></button></div></div></section>
 </main>
 </div>
   <aside class="side island island-pad">
