@@ -1,4 +1,4 @@
-// Summary of a sweep. Usage: node experiments/2026-09-25-sweep/analyze.mjs [dataDir]   (default: ./data next to this script)
+// Summary of a sweep. Usage: node experiments/analyze.mjs [dataDir]   (default: ./data next to this script)
 import { readFileSync, readdirSync } from 'node:fs';
 const D = (process.argv[2] ?? new URL('./data/', import.meta.url).pathname).replace(/\/?$/, '/');
 const ORDER = ['nullNoDAN', 'default', 'gossip0', 'gossip1', 'forget0', 'forget02', 'trustPlus', 'trustMinus', 'generous', 'harsh', 'pureMemory', 'friendlyWorld', 'hostileWorld', 'tournament'];

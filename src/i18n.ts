@@ -72,6 +72,13 @@ const D = {
   coopChance: { en: 'chance to cooperate', ru: 'шанс сотрудничества' },
   payoff: { en: 'payoff', ru: 'выплата' }, reward: { en: 'reward · PAM dopamine', ru: 'награда · дофамин PAM' }, punishment: { en: 'punishment · PPL1 dopamine', ru: 'наказание · дофамин PPL1' },
   back: { en: 'Back', ru: 'Назад' },
+  resultsTitle: { en: 'Experiment results', ru: 'Результаты эксперимента' },
+  // podcast player
+  podcast: { en: 'Podcast', ru: 'Подкаст' },
+  podcastPlay: { en: 'Listen to the podcast', ru: 'Слушать подкаст' }, podcastPause: { en: 'Pause', ru: 'Пауза' },
+  podcastRetry: { en: 'Retry audio', ru: 'Повторить загрузку аудио' },
+  podcastPosition: { en: 'Podcast playback position', ru: 'Позиция в подкасте' }, podcastSpeed: { en: 'Playback speed', ru: 'Скорость воспроизведения' },
+  podcastError: { en: 'Playback unavailable. Press ▶ to retry.', ru: 'Не удалось воспроизвести. Нажмите ▶ для повтора.' },
 } satisfies Record<string, Entry>;
 
 export type Key = keyof typeof D;

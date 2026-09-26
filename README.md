@@ -44,10 +44,11 @@ Known limitation: only the brains get the shuffled circuit. The game still label
 
 Vercel: import the GitHub repo, framework preset "Vite" (`vercel.json` sets the build and caching).
 `public/data/` holds the packed circuit (0.8 MB) and skeletons (11 MB, ~3.4 MB compressed); both are committed.
+`public/audio/` holds the two podcast episodes (English and Russian, 64 kbps mono MP3, ~20 MB together). The player in the bottom-right corner of the arena picks the episode that matches the site language.
 
 ## Analytics
 
-PostHog is optional until a project token is configured. Copy `.env.example` to `.env.local` for local development, or set `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST` in Vercel and redeploy. Use the project token and matching ingestion host from PostHog Project settings (US or EU). The token is public by design; do not use a personal API key. Without a token, the analytics module makes no requests. The app sends pageviews, page exits, click autocapture, and named events for simulation controls, focus, language, and completion. Session recording is disabled.
+PostHog is optional until a project token is configured. Copy `.env.example` to `.env.local` for local development, or set `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST` in Vercel and redeploy. Use the project token and matching ingestion host from PostHog Project settings (US or EU). The token is public by design; do not use a personal API key. Without a token, the analytics module makes no requests. The app sends pageviews, page exits, click autocapture, and named events for simulation controls, focus, language, podcast playback, experiment results, and completion. Session recording is disabled.
 
 ## Layout
 

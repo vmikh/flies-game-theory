@@ -9,3 +9,4 @@ dist/
 !.env.example
 smoke.png
 smoke-main.png
+experiments/audio/

@@ -1,10 +1,10 @@
-// Sweep runner (appends one JSON line per game). Usage from the repo root: node --experimental-transform-types experiments/2026-09-25-sweep/run.ts <config> <seedFrom> <seedTo> <rounds> <outFile>
+// Sweep runner (appends one JSON line per game). Usage from the repo root: node --experimental-transform-types experiments/run.ts <config> <seedFrom> <seedTo> <rounds> <outFile>
 import { appendFileSync } from 'node:fs';
-import { loadCircuit } from '../../scripts/node_flies.ts';
-import { Game, DEFAULT_GAME, type GameParams } from '../../src/game.ts';
-import { LocalFly, type Lesion } from '../../src/backend.ts';
-import { shuffleCircuit } from '../../src/shuffle.ts';
-import { mulberry32 } from '../../src/sim.ts';
+import { loadCircuit } from '../scripts/node_flies.ts';
+import { Game, DEFAULT_GAME, type GameParams } from '../src/game.ts';
+import { LocalFly, type Lesion } from '../src/backend.ts';
+import { shuffleCircuit } from '../src/shuffle.ts';
+import { mulberry32 } from '../src/sim.ts';
 
 const [cfgName, sFrom, sTo, rds, out] = process.argv.slice(2);
 const rounds = Number(rds);

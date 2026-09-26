@@ -184,9 +184,9 @@ A dash means fewer than 20 such flies. Labels are noisy (limitation 5), so read 
 From the repository root:
 
 ```
-node --experimental-transform-types experiments/2026-09-25-sweep/run.ts default 1 100 35 /tmp/default.jsonl
-node experiments/2026-09-25-sweep/analyze.mjs                    # summary of data/
-node experiments/2026-09-25-sweep/analyze.mjs <folder of .jsonl> # summary of another folder
+node --experimental-transform-types experiments/run.ts default 1 100 35 /tmp/default.jsonl
+node experiments/analyze.mjs                    # summary of data/
+node experiments/analyze.mjs <folder of .jsonl> # summary of another folder
 ```
 
 Set names are in `CFGS` in `run.ts`. Each line of a `.jsonl` file is one game: totals, cooperation per round, strategy counters and each fly's money.

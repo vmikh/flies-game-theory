@@ -25,7 +25,7 @@ export function initAnalytics() {
 
 type Event =
   | 'simulation_started' | 'simulation_played' | 'simulation_paused' | 'simulation_finished'
-  | 'fly_focused' | 'fly_unfocused' | 'parameters_opened' | 'about_opened' | 'language_changed';
+  | 'fly_focused' | 'fly_unfocused' | 'parameters_opened' | 'about_opened' | 'language_changed' | 'podcast_played' | 'results_opened';
 
 export function track(event: Event, properties?: Record<string, string | number | boolean>) {
   if (!key) return;

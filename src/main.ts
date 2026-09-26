@@ -7,7 +7,9 @@ import { Arena } from './arena.ts';
 import { LESIONS, type Lesion } from './backend.ts';
 import { t, getLang, setLang, onLang, strategyLabel, lesionLabel, lesionHint, type Key } from './i18n.ts';
 import { renderAbout } from './about.ts';
+import { resultsHtml } from './results.ts';
 import { initAnalytics, track } from './analytics.ts';
+import { mountPodcast } from './podcast.ts';
 
 initAnalytics();
 
@@ -27,6 +29,12 @@ app.innerHTML = `
   <div class="modal">
     <div class="modal-head"><h2 class="t-h3" data-i18n="title"></h2><button id="about-close" class="btn btn-sm" data-i18n="close"></button></div>
     <div id="about-body"></div>
+  </div>
+</div>
+<div id="results" class="scrim" hidden>
+  <div class="modal">
+    <div class="modal-head"><h2 class="t-h3" data-i18n="resultsTitle"></h2><button id="results-close" class="btn btn-sm" data-i18n="close"></button></div>
+    <div id="results-body"></div>
   </div>
 </div>
 <div id="params-scrim" class="scrim" hidden>
@@ -53,7 +61,7 @@ app.innerHTML = `
 </div>
 </div>
 <main class="layout">
-  <section id="arena"><div id="brain-loading" role="status" aria-live="polite" hidden></div><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn" data-i18n="back"></button></div></div></section>
+  <section id="arena"><div id="dock"><button id="toggle-results" type="button" class="btn dock-info"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="6.5" r="1.75"/><rect x="10.75" y="10" width="2.5" height="9" rx="1.25"/></svg></button></div><div id="brain-loading" role="status" aria-live="polite" hidden></div><div id="caption" hidden><div id="cap-text"></div><div class="cap-btns"><button id="cap-back" class="btn" data-i18n="back"></button></div></div></section>
 </main>
 </div>
   <aside class="side island island-pad">
@@ -108,6 +116,8 @@ function applyStatic() {
   document.querySelectorAll<HTMLSelectElement>('#lesions select').forEach((sel) => Array.from(sel.options).forEach((o) => { o.textContent = lesionLabel(o.value); o.title = lesionHint(o.value); }));
   document.getElementById('lesion-legend')!.innerHTML = LESIONS.filter((l) => l.id !== 'none').map((l) => `<dt>${lesionLabel(l.id)}</dt><dd>${lesionHint(l.id)}</dd>`).join('');
   renderAbout(document.getElementById('about-body')!, getLang());
+  document.getElementById('results-body')!.innerHTML = resultsHtml(getLang());
+  const resultsBtn = document.getElementById('toggle-results')!; resultsBtn.title = t('resultsTitle'); resultsBtn.setAttribute('aria-label', t('resultsTitle'));
   document.getElementById('lang')!.textContent = getLang() === 'ru' ? 'EN' : 'RU';   // the link names the other language
 }
 function setPlayLabel() { playBtn.textContent = playing ? t('pause') : t('play'); }
@@ -160,7 +170,11 @@ const about = document.getElementById('about')!;
 document.getElementById('toggle-about')!.onclick = () => { about.hidden = !about.hidden; if (!about.hidden) track('about_opened'); };
 document.getElementById('about-close')!.onclick = () => (about.hidden = true);
 about.onclick = (e) => { if (e.target === about) about.hidden = true; };
-addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') { about.hidden = true; closeParams(); } });
+const results = document.getElementById('results')!;
+document.getElementById('toggle-results')!.onclick = () => { results.hidden = false; track('results_opened'); };
+document.getElementById('results-close')!.onclick = () => (results.hidden = true);
+results.onclick = (e) => { if (e.target === results) results.hidden = true; };
+addEventListener('keydown', (e: KeyboardEvent) => { if (e.key === 'Escape') { about.hidden = true; results.hidden = true; closeParams(); } });
 
 let game: Game;
 let loopTask: Promise<void> | null = null;
@@ -182,6 +196,7 @@ async function startGame() {
   } finally { starting = false; }
 }
 document.getElementById('restart')!.onclick = () => { closeParams(); void startGame(); };
+mountPodcast(document.getElementById('dock')!);
 const capEl = document.getElementById('caption')!, capText = document.getElementById('cap-text')!;
 function caption(b: number) {
   const s = lastSnap; if (!s) return; const f = s.flies[b]; const st = f.strategy;
