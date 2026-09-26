@@ -151,14 +151,18 @@ html, body { height: 100%; min-width: 1350px; min-height: 700px; overflow: auto;
     border-radius: 0 var(--rd-2) var(--rd-2) 0; background: var(--c-island); color: var(--c-fg-2); font-size: var(--fs-body); line-height: var(--lh-body); }
   .mobile-description { margin-top: 48px; }
   .mobile-description > h2 { margin-bottom: 20px; color: var(--c-fg); font-size: 23px; font-weight: var(--fw-semibold); }
-  #mobile-about-body { color: var(--c-fg-2); font-size: var(--fs-body); line-height: 1.65; }
-  #mobile-about-body p { margin: 0 0 16px; }
-  #mobile-about-body h3 { margin: 32px 0 12px; color: var(--c-fg); font-size: 17px; font-weight: var(--fw-semibold); }
-  #mobile-about-body b { color: var(--c-fg); font-weight: var(--fw-semibold); }
-  #mobile-about-body ul { margin: 0 0 20px; padding-left: 20px; }
-  #mobile-about-body li { margin: 0 0 12px; padding-left: 2px; }
-  #mobile-about-body a { color: var(--c-accent); text-decoration: underline; text-underline-offset: 3px; }
-  #mobile-about-body .muted { color: var(--c-fg-4); }
+  #mobile-about-body, #mobile-results-body { color: var(--c-fg-2); font-size: var(--fs-body); line-height: 1.65; }
+  #mobile-about-body p, #mobile-results-body p { margin: 0 0 16px; }
+  #mobile-about-body h3, #mobile-results-body h3 { margin: 32px 0 12px; color: var(--c-fg); font-size: 17px; font-weight: var(--fw-semibold); }
+  #mobile-about-body b, #mobile-results-body b { color: var(--c-fg); font-weight: var(--fw-semibold); }
+  #mobile-about-body ul, #mobile-results-body ul { margin: 0 0 20px; padding-left: 20px; }
+  #mobile-about-body li, #mobile-results-body li { margin: 0 0 12px; padding-left: 2px; }
+  #mobile-about-body a, #mobile-results-body a { color: var(--c-accent); text-decoration: underline; text-underline-offset: 3px; }
+  #mobile-about-body .muted, #mobile-results-body .muted { color: var(--c-fg-4); }
+  #mobile-results-body p.results-note { margin: 0; font-size: var(--fs-sm); } #mobile-results-body > h3:first-child { margin-top: 0; }
+  .mobile-podcast { margin-top: 40px; }
+  .mobile-podcast > h2 { margin-bottom: 14px; color: var(--c-fg); font-size: 17px; font-weight: var(--fw-semibold); }
+  #mobile-podcast #podcast { width: 100%; box-shadow: none; }
   @keyframes mobile-signal { 0%, 100% { opacity: .4; transform: scaleY(.6); } 50% { opacity: 1; transform: scaleY(1.35); } }
 }
 

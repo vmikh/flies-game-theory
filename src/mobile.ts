@@ -1,6 +1,8 @@
 import { Circuit } from './circuit.ts';
 import { Arena } from './arena.ts';
 import { renderAbout } from './about.ts';
+import { resultsHtml } from './results.ts';
+import { mountPodcast } from './podcast.ts';
 import { getLang, onLang, setLang, t } from './i18n.ts';
 import { initAnalytics, track } from './analytics.ts';
 
@@ -21,9 +23,17 @@ app.innerHTML = `
   <main class="mobile-content">
     <h1 id="mobile-title"></h1>
     <p id="mobile-desktop-note" class="mobile-desktop-note"></p>
+    <section class="mobile-podcast" aria-labelledby="mobile-podcast-title">
+      <h2 id="mobile-podcast-title"></h2>
+      <div id="mobile-podcast"></div>
+    </section>
     <section class="mobile-description" aria-labelledby="mobile-about-title">
       <h2 id="mobile-about-title"></h2>
       <div id="mobile-about-body"></div>
+    </section>
+    <section class="mobile-description" aria-labelledby="mobile-results-title">
+      <h2 id="mobile-results-title"></h2>
+      <div id="mobile-results-body"></div>
     </section>
   </main>
 </div>`;
@@ -43,12 +53,16 @@ function renderText() {
   document.getElementById('mobile-desktop-note')!.textContent = t('mobileDesktopNote');
   document.getElementById('mobile-about-title')!.textContent = t('aboutTitle');
   renderAbout(document.getElementById('mobile-about-body')!, getLang());
+  document.getElementById('mobile-podcast-title')!.textContent = t('podcastHeading');
+  document.getElementById('mobile-results-title')!.textContent = t('resultsTitle');
+  document.getElementById('mobile-results-body')!.innerHTML = resultsHtml(getLang());
   if (!loading.hidden) loading.textContent = t('mobileBrainLoading');
 }
 
 langButton.onclick = () => { const lang = getLang() === 'ru' ? 'en' : 'ru'; setLang(lang); track('language_changed', { language: lang }); };
 onLang(renderText);
 renderText();
+mountPodcast(document.getElementById('mobile-podcast')!);
 
 try {
   const circuit = await Circuit.load();

@@ -3,7 +3,7 @@ import type { Lang } from './i18n.ts';
 const REPORT = 'https://github.com/vmikh/flies-game-theory/tree/main/experiments';
 const a = (href: string, label: string) => `<a href="${href}" target="_blank" rel="noopener">${label}</a>`;
 
-/** Summary of the headless parameter sweep (experiments/), shown behind the "i" button next to the podcast. */
+/** Summary of the headless parameter sweep (experiments/): a modal behind the "i" button on desktop, a section on the mobile page. */
 export function resultsHtml(lang: Lang): string {
   if (lang === 'ru') return `
 <h3>Как проводили</h3>

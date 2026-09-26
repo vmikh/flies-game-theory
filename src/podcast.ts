@@ -1,5 +1,5 @@
 /**
- * Podcast player in the bottom-right corner of the arena: one episode per language, the site language picks it.
+ * Podcast player (bottom-right of the arena on desktop, under the title on the mobile page): one episode per language, the site language picks it.
  * Follows the narration player of earth-simulator: play, seek, time, playback speed.
  */
 import { t, getLang, onLang, type Lang } from './i18n.ts';

@@ -75,6 +75,7 @@ const D = {
   resultsTitle: { en: 'Experiment results', ru: 'Результаты эксперимента' },
   // podcast player
   podcast: { en: 'Podcast', ru: 'Подкаст' },
+  podcastHeading: { en: 'Podcast about the experiment', ru: 'Подкаст об эксперименте' },
   podcastPlay: { en: 'Listen to the podcast', ru: 'Слушать подкаст' }, podcastPause: { en: 'Pause', ru: 'Пауза' },
   podcastRetry: { en: 'Retry audio', ru: 'Повторить загрузку аудио' },
   podcastPosition: { en: 'Podcast playback position', ru: 'Позиция в подкасте' }, podcastSpeed: { en: 'Playback speed', ru: 'Скорость воспроизведения' },
